@@ -2,7 +2,7 @@
    PASTE YOUR WEB APP ADDRESS HERE (from Apps Script: Deploy > New deployment).
    It must start with https://script.google.com/macros/s/ and end with /exec
    ============================================================ */
-const WEB_APP_URL = 'PASTE-YOUR-WEB-APP-URL-HERE';
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbx6EkKT5aatjoNcLSQKJySiD7jgKh4lzawWxlpKCt_AkB5ymQWBZNG-agDYQAtM-ZnF-Q/exec';
 
 /* MMRC Fleet Log — shared storage.
    Both logs save through the Google Apps Script web app:
