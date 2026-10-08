@@ -1,8 +1,9 @@
 {
+  "id": "./",
   "name": "MMRC Fleet Log",
   "short_name": "Fleet Log",
   "description": "Trolley and T1000 Movexx repair log",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
