@@ -1,0 +1,2243 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T1000 Movexx Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  :root{
+    --ink:#101828; --body:#344054; --muted:#667085; --faint:#98A2B3;
+    --line:#E4E7EC; --line-soft:#F0F2F5; --bg:#F5F7FA; --surface:#FFFFFF;
+    --brand:#0E4C66; --brand-dark:#0A3A4E; --brand-tint:#EEF5F8;
+    --ok:#067647; --ok-bg:#ECFDF3; --ok-line:#ABEFC6;
+    --down:#B42318; --down-bg:#FEF3F2; --down-line:#FECDCA;
+    --warn:#B54708; --warn-bg:#FFFAEB; --warn-line:#FEDF89;
+    --info:#175CD3; --info-bg:#EFF8FF; --info-line:#B2DDFF;
+    --head:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;
+    --text:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+    --mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+    --r:10px; --r-sm:6px;
+    --sh:0 1px 2px rgba(16,24,40,.05), 0 1px 3px rgba(16,24,40,.05);
+    --sh-lg:0 12px 32px rgba(16,24,40,.14);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--body);font-family:var(--text);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,h4{font-family:var(--head);color:var(--ink);margin:0}
+  :focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+
+  /* ---------- top bar ---------- */
+  .topbar{background:var(--surface);border-bottom:1px solid var(--line)}
+  .topbar-in{max-width:1200px;margin:0 auto;padding:16px 20px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .brandmark{display:flex;gap:12px;align-items:center}
+  .glyph{width:38px;height:38px;border-radius:9px;background:var(--brand);display:grid;place-items:center;flex:none}
+  .glyph svg{width:21px;height:21px;stroke:#fff;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .brandmark h1{font-size:18px;font-weight:800;letter-spacing:-.015em;line-height:1.2}
+  .brandmark p{margin:1px 0 0;font-size:12.5px;color:var(--muted)}
+  .topbar-right{display:flex;gap:12px;align-items:center}
+  .saveflag{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .saveflag i{width:7px;height:7px;border-radius:50%;background:var(--ok);display:inline-block}
+  .saveflag.warn i{background:var(--warn)}
+
+  /* ---------- tabs ---------- */
+  .tabs{background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20}
+  .tabs-in{max-width:1200px;margin:0 auto;padding:0 20px;display:flex;gap:4px;overflow-x:auto}
+  .tab{appearance:none;background:none;border:0;border-bottom:2px solid transparent;font-family:var(--text);font-weight:500;font-size:14.5px;
+       color:var(--muted);padding:13px 14px 11px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:7px}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--brand);border-bottom-color:var(--brand);font-weight:600}
+  .badge{font-family:var(--mono);font-size:11px;background:var(--line-soft);color:var(--muted);border-radius:20px;padding:1px 7px;min-width:20px;text-align:center}
+  .tab[aria-selected="true"] .badge{background:var(--brand-tint);color:var(--brand)}
+
+  main{max-width:1200px;margin:0 auto;padding:24px 20px 90px}
+
+  /* ---------- primitives ---------- */
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin:0 0 16px}
+  .sec-head h2{font-size:20px;font-weight:700;letter-spacing:-.015em}
+  .sub{color:var(--muted);font-size:13.5px;margin:2px 0 0}
+  .unithead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .plate.multi b{font-size:15px}
+  .unitlist{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 2px}
+  .unitchip{appearance:none;font-family:var(--mono);font-size:11.5px;color:var(--brand);background:var(--brand-tint);
+    border:1px solid #D3E3EA;border-radius:5px;padding:2px 7px;cursor:pointer}
+  .unitchip:hover{border-color:var(--brand)}
+  .feed b{width:auto;min-width:52px;max-width:45%}
+  .pickbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .pickcount{margin-left:auto;font-size:12.5px;color:var(--muted);font-weight:500}
+  .pickgroup{margin-bottom:12px}
+  .pickhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .pickhead .linkbtn{font-size:12.5px}
+  .pickgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:6px}
+  .pk{position:relative;display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-bottom:3px solid var(--line);
+      border-radius:var(--r-sm);padding:8px 9px;cursor:pointer;font-family:var(--mono);font-size:13px;background:var(--surface);user-select:none}
+  .pk:hover{border-color:var(--brand)}
+  .pk input{width:15px;height:15px;margin:0;accent-color:var(--brand);flex:none}
+  .pk:has(input:checked){background:var(--brand-tint);border-color:var(--brand)}
+  .pk.busy span{color:var(--warn)}
+  .pkdot{position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--down)}
+  .dresult{font-size:13.5px;border-radius:var(--r-sm);margin:0 0 14px}
+  .dresult:empty{display:none}
+  .dresult.good,.dresult.bad,.dresult:not(:empty){padding:11px 13px;border:1px solid var(--line);background:var(--line-soft)}
+  .dresult.good{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok)}
+  .dresult.bad{background:var(--down-bg);border-color:var(--down-line);color:var(--down)}
+  .certline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .pill.info{background:var(--info-bg);border-color:var(--info-line);color:var(--info)}
+  .pill.warn{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn)}
+  .alertbox{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--warn);border-radius:var(--r);
+    box-shadow:var(--sh);padding:18px 20px;margin-bottom:16px}
+  .alertbox.hot{border-left-color:var(--down)}
+  .alertbox h3{font-size:15px;font-weight:700;margin-bottom:4px}
+  .alertbox ul{list-style:none;margin:12px 0 0;padding:0}
+  .alertbox li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-soft);flex-wrap:wrap}
+  .alertbox li:last-child{border-bottom:0;padding-bottom:0}
+  .linkbtn{appearance:none;background:none;border:0;padding:0;font:inherit;color:var(--brand);cursor:pointer;text-align:left}
+  .linkbtn:hover{text-decoration:underline}
+  .linkbtn .jobref{color:var(--muted)}
+  .grouphead{display:flex;align-items:center;gap:12px;margin:26px 0 12px}
+  .grouphead:first-of-type{margin-top:4px}
+  .grouphead.sm{margin:20px 0 10px}
+  .hero .grouphead.sm:first-of-type{margin-top:4px}
+  .sizebadge{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;color:var(--ink);
+    border:1px solid var(--line);background:var(--line-soft);border-radius:6px;padding:4px 9px;white-space:nowrap;margin-left:auto}
+  .sizebadge i{width:8px;height:8px;border-radius:2px;display:inline-block;flex:none;border:1px solid rgba(16,24,40,.12)}
+  .hint{color:var(--muted);font-size:13.5px;margin:0}
+
+  .btn{appearance:none;font-family:var(--text);font-weight:600;font-size:14px;border:1px solid var(--brand);background:var(--brand);color:#fff;
+       padding:9px 16px;border-radius:var(--r-sm);cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s;line-height:1.4}
+  .btn:hover{background:var(--brand-dark);border-color:var(--brand-dark)}
+  .btn.ghost{background:var(--surface);color:var(--body);border-color:var(--line)}
+  .btn.ghost:hover{background:var(--bg);border-color:#CDD3DB;color:var(--ink)}
+  .btn.small{padding:6px 12px;font-size:13px}
+  .btn.danger{background:var(--surface);color:var(--down);border-color:var(--down-line)}
+  .btn.danger:hover{background:var(--down-bg);border-color:var(--down)}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+
+  input,select,textarea{font-family:var(--text);font-size:14.5px;color:var(--ink);background:var(--surface);border:1px solid #D0D5DD;
+    border-radius:var(--r-sm);padding:10px 12px;width:100%;transition:border-color .15s,box-shadow .15s}
+  textarea{resize:vertical;min-height:96px}
+  input:hover,select:hover,textarea:hover{border-color:#B9C0CB}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(14,76,102,.12)}
+  label.f{display:block;margin-bottom:16px}
+  label.f > span.lbl{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  label.f > span.lbl em{font-style:normal;color:var(--down);margin-left:2px}
+  label.f small{display:block;color:var(--muted);font-size:12.5px;margin-top:5px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0 16px}
+  .money{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .jobref{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+  /* pills */
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;
+        border:1px solid var(--line);background:var(--line-soft);color:var(--muted);white-space:nowrap}
+  .pill i{width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block;flex:none}
+  .pill[data-s="Quoted"]{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn)}
+  .pill[data-s="In progress"]{background:var(--info-bg);border-color:var(--info-line);color:var(--info)}
+  .pill[data-s="Completed"]{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok)}
+  .pill.down{background:var(--down-bg);border-color:var(--down-line);color:var(--down)}
+  .pill.ok{background:var(--ok-bg);border-color:var(--ok-line);color:var(--ok)}
+  .pill.urgent{background:var(--down-bg);border-color:var(--down-line);color:var(--down)}
+
+  /* ---------- fleet strip (board hero) ---------- */
+  .hero{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:22px 24px;margin-bottom:16px}
+  .hero-top{display:flex;gap:24px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:20px}
+  .readout .big{font-family:var(--head);font-weight:800;font-size:44px;letter-spacing:-.03em;line-height:1;color:var(--ink)}
+  .readout .big span{color:var(--faint);font-weight:700}
+  .readout .cap{font-size:13.5px;color:var(--muted);margin-top:6px}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .legend div{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+  .legend i{width:9px;height:9px;border-radius:3px;display:inline-block}
+  .strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:7px}
+  .chip{border:1px solid var(--ok-line);background:var(--ok-bg);color:var(--ok);border-radius:var(--r-sm);padding:9px 4px;text-align:center;
+        font-family:var(--mono);font-size:12.5px;font-weight:500;cursor:pointer;transition:transform .1s,box-shadow .15s}
+  .chip:hover{transform:translateY(-1px);box-shadow:var(--sh)}
+  .chip[data-st="repair"]{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn)}
+  .chip[data-st="down"]{background:#F2F4F7;border-color:#E4E7EC;color:var(--faint);text-decoration:line-through}
+  .chip[data-st="retired"]{background:transparent;border-style:dashed;border-color:var(--line);color:var(--faint)}
+  /* servicing certificate overrides the status fill, same as the machine cards */
+  .chip[data-cert="m3"],.chip[data-cert="m1"]{background:var(--warn-bg);border-color:var(--warn-line);color:var(--warn)}
+  .chip[data-cert="w2"],.chip[data-cert="due"],.chip[data-cert="overdue"]{background:var(--down-bg);border-color:var(--down-line);color:var(--down);font-weight:600}
+  .legend.sizes{margin-top:15px;padding-top:14px;border-top:1px solid var(--line-soft)}
+  .legend i.ul{width:18px;height:4px;border-radius:2px}
+
+  /* ---------- stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px}
+  .stat .k{font-size:13px;color:var(--muted);font-weight:500}
+  .stat .v{font-family:var(--head);font-weight:800;font-size:30px;letter-spacing:-.025em;color:var(--ink);margin-top:8px;line-height:1}
+  .stat .note{font-size:12.5px;margin-top:8px;color:var(--muted)}
+  .stat .note.alert{color:var(--warn);font-weight:500}
+  button.stat{font-family:var(--text);text-align:left;width:100%;cursor:pointer;transition:border-color .15s,box-shadow .15s}
+  button.stat:hover{border-color:var(--brand);box-shadow:0 2px 8px rgba(14,76,102,.12)}
+  .stat .k{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .stat .go{color:var(--brand);font-weight:600;font-size:12.5px;opacity:0;transition:opacity .15s}
+  button.stat:hover .go{opacity:1}
+  @media (hover:none){ .stat .go{opacity:1} }
+
+  .panels{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh)}
+  .panel h3{font-size:15px;font-weight:700;padding:16px 20px;border-bottom:1px solid var(--line-soft)}
+  .panel .pbody{padding:16px 20px}
+  .feed{list-style:none;margin:0;padding:0}
+  .feed li{padding:11px 0;border-bottom:1px solid var(--line-soft);display:flex;gap:12px;align-items:flex-start;font-size:13.5px}
+  .feed li:last-child{border-bottom:0;padding-bottom:0}
+  .feed b{font-family:var(--mono);font-size:12.5px;color:var(--ink);font-weight:500;flex:none;width:52px}
+  .bar-row{margin-bottom:14px}
+  .bar-row:last-child{margin-bottom:0}
+  .bar-row .lbl{display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px;gap:10px;color:var(--ink)}
+  .bar{height:8px;background:var(--line-soft);border-radius:20px;overflow:hidden}
+  .bar i{display:block;height:100%;background:var(--brand);border-radius:20px}
+
+  /* ---------- repairs ---------- */
+  .toolbar{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px;margin-bottom:18px}
+  .jobs{display:grid;gap:14px}
+  .job{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden}
+  .job-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:18px 20px 0}
+  .job-unit{display:flex;gap:14px;align-items:center;min-width:0}
+  .plate{width:64px;height:64px;border-radius:var(--r-sm);background:var(--brand-tint);border:1px solid #D3E3EA;color:var(--brand);
+         display:grid;place-content:center;text-align:center;flex:none}
+  .plate b{font-family:var(--head);font-weight:800;font-size:17px;letter-spacing:-.02em;line-height:1.1}
+  .plate span{font-size:10px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+  .job.down .plate{background:#F2F4F7;border-color:var(--line);color:var(--faint)}
+  .job-unit h4{font-size:16px;font-weight:700;letter-spacing:-.01em}
+  .job-unit .meta{font-size:13px;color:var(--muted);margin-top:3px}
+  .job-fault{padding:14px 20px 0;font-size:14.5px;color:var(--body);white-space:pre-wrap}
+  .job-foot{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:16px;padding:14px 20px;
+            border-top:1px solid var(--line-soft);background:#FCFCFD}
+  .amount{text-align:right}
+  .amount .k{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+  .amount .v{font-family:var(--mono);font-size:17px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .rcpt{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok-line);
+        border-radius:20px;padding:4px 11px}
+  .rcpt.none{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-line)}
+  .rcpt.plain{color:var(--muted);background:var(--line-soft);border-color:var(--line)}
+  .job-actions{display:flex;flex-direction:column;align-items:flex-end;gap:8px;margin-left:auto}
+  .job-actions .row{justify-content:flex-end;gap:8px}
+  @media (max-width:560px){ .job-actions{align-items:stretch;width:100%;margin-left:0} .job-actions .row{justify-content:flex-start} }
+
+  /* ---------- fleet grid ---------- */
+  .fleet{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px}
+  .unit{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:16px 17px}
+  .unit h4{font-family:var(--head);font-weight:800;font-size:20px;letter-spacing:-.02em}
+  .unit .nt{font-size:12.5px;color:var(--muted);margin-top:10px;min-height:18px}
+  .unit .acts{margin-top:14px;display:flex;gap:8px}
+  .unit[data-st="down"]{background:#F9FAFB}
+  .unit[data-st="down"] h4{color:var(--faint)}
+  .unit[data-st="retired"]{background:#F9FAFB;border-style:dashed}
+  .unit[data-st="retired"] h4{color:var(--faint)}
+  /* servicing certificate: yellow from 3 months out, red from 2 weeks out */
+  .unit[data-cert="m3"],.unit[data-cert="m1"]{background:var(--warn-bg);border-color:var(--warn-line)}
+  .unit[data-cert="w2"],.unit[data-cert="due"],.unit[data-cert="overdue"]{background:var(--down-bg);border-color:var(--down-line)}
+  .unit[data-cert="m3"] .sizebadge,.unit[data-cert="m1"] .sizebadge,
+  .unit[data-cert="w2"] .sizebadge,.unit[data-cert="due"] .sizebadge,.unit[data-cert="overdue"] .sizebadge{background:#fff}
+
+  /* ---------- tables ---------- */
+  .tbl-wrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);overflow-x:auto}
+  table{border-collapse:collapse;width:100%;font-size:13.5px}
+  th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:12px 16px;border-bottom:1px solid var(--line);white-space:nowrap;background:#FCFCFD}
+  td{padding:14px 16px;border-bottom:1px solid var(--line-soft);vertical-align:middle;color:var(--body)}
+  tbody tr:last-child td{border-bottom:0}
+  tbody tr:hover td{background:#FCFCFD}
+  td.num,th.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+  tfoot td{background:#FCFCFD;font-weight:600;color:var(--ink);border-top:1px solid var(--line)}
+
+  /* ---------- vendors ---------- */
+  .vendors{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+  .vendor{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:20px}
+  .vendor.off{background:#F9FAFB}
+  .vendor h4{font-size:16.5px;font-weight:700}
+  .trade{font-size:12.5px;color:var(--brand);font-weight:500;margin-top:2px}
+  .vlines{margin-top:14px;display:grid;gap:7px;font-size:13.5px}
+  .vlines div{display:flex;gap:10px}
+  .vlines span{font-size:12.5px;color:var(--muted);min-width:74px;flex:none}
+  .vstats{display:flex;gap:28px;margin-top:16px;padding-top:14px;border-top:1px solid var(--line-soft)}
+  .vstats div{font-size:12.5px;color:var(--muted)}
+  .vstats b{display:block;font-family:var(--head);font-size:19px;color:var(--ink);margin-top:2px}
+
+  /* ---------- empty ---------- */
+  .empty{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:56px 24px;text-align:center;box-shadow:var(--sh)}
+  .empty .glyph{margin:0 auto 16px;width:46px;height:46px;background:var(--brand-tint)}
+  .empty .glyph svg{stroke:var(--brand);width:24px;height:24px}
+  .empty h3{font-size:17px;font-weight:700;margin-bottom:6px}
+  .empty p{color:var(--muted);margin:0 auto 20px;max-width:44ch;font-size:14px}
+
+  /* ---------- modal ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(16,24,40,.5);backdrop-filter:blur(2px);display:none;z-index:60;padding:20px;overflow-y:auto}
+  .scrim.open{display:block}
+  .modal{background:var(--surface);max-width:640px;margin:28px auto;border-radius:14px;box-shadow:var(--sh-lg);animation:rise .18s ease-out}
+  @keyframes rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+  .modal-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+  .modal-head h3{font-size:18px;font-weight:700;letter-spacing:-.015em}
+  .modal-head p{margin:3px 0 0;font-size:13px;color:var(--muted)}
+  .x{appearance:none;background:none;border:0;font-size:26px;line-height:1;color:var(--faint);cursor:pointer;padding:0 4px}
+  .x:hover{color:var(--ink)}
+  .modal-body{padding:22px 24px}
+  .modal-foot{padding:16px 24px;border-top:1px solid var(--line);display:flex;gap:10px;justify-content:flex-end;background:#FCFCFD;
+              border-radius:0 0 14px 14px;flex-wrap:wrap}
+  .fieldset{border:0;padding:0;margin:22px 0 0}
+  .fieldset legend{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;padding:0;margin-bottom:14px;
+    width:100%;border-top:1px solid var(--line);padding-top:18px}
+
+  /* choice cards */
+  .choice{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  .opt{border:1px solid #D0D5DD;border-radius:var(--r-sm);padding:13px 14px;cursor:pointer;display:flex;gap:11px;align-items:flex-start;
+       background:var(--surface);transition:border-color .15s,background .15s,box-shadow .15s}
+  .opt:hover{border-color:var(--brand);background:#FCFEFF}
+  .opt input{width:17px;height:17px;margin:2px 0 0;flex:none;accent-color:var(--brand)}
+  .opt b{display:block;font-size:14px;color:var(--ink);font-weight:600}
+  .opt small{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+  .opt:has(input:checked){border-color:var(--brand);background:var(--brand-tint);box-shadow:0 0 0 3px rgba(14,76,102,.1)}
+  .opt.warn:has(input:checked){border-color:var(--down);background:var(--down-bg);box-shadow:0 0 0 3px rgba(180,35,24,.1)}
+  .opt.warn:has(input:checked) b{color:var(--down)}
+  .opt.warn input{accent-color:var(--down)}
+
+  .total-strip{background:var(--brand);color:#fff;border-radius:var(--r-sm);padding:14px 16px;display:flex;justify-content:space-between;
+    align-items:center;margin-bottom:20px}
+  .total-strip span{font-size:12.5px;color:#B8D4DE}
+  .total-strip b{font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums;font-weight:500}
+
+  /* capture area */
+  .drop{border:1px dashed #CDD5DF;border-radius:var(--r-sm);padding:24px 18px;text-align:center;background:#FCFCFD}
+  .drop img{max-width:100%;max-height:250px;border:1px solid var(--line);border-radius:var(--r-sm);display:block;margin:0 auto 14px}
+  .drop .fname{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-bottom:14px;word-break:break-all}
+  .drop p{margin:0 0 16px;font-size:13.5px;color:var(--muted)}
+  .drop .row{justify-content:center}
+  .drop .glyph{margin:0 auto 12px;background:var(--brand-tint);width:42px;height:42px}
+  .drop .glyph svg{stroke:var(--brand)}
+  .filepick{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);border:0}
+  .aslabel{display:inline-block;font-family:var(--text);font-weight:600;font-size:14px;border:1px solid var(--line);background:var(--surface);
+           color:var(--body);padding:9px 16px;border-radius:var(--r-sm);cursor:pointer}
+  .aslabel:hover{background:var(--bg);border-color:#CDD3DB;color:var(--ink)}
+  .aslabel.solid{background:var(--brand);color:#fff;border-color:var(--brand)}
+  .aslabel.solid:hover{background:var(--brand-dark)}
+  .viewer img{max-width:100%;display:block;margin:0 auto;border:1px solid var(--line);border-radius:var(--r-sm)}
+  .viewpic{margin:0 0 18px}.viewpic:last-child{margin-bottom:0}
+  .viewpic figcaption{text-align:center;font-size:12px;color:var(--muted);margin-top:6px}
+  .thumbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-bottom:12px;text-align:left}
+  .thumb{position:relative;aspect-ratio:3/4;border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden;background:#fff}
+  .drop .thumb img{width:100%;height:100%;max-height:none;object-fit:cover;border:0;border-radius:0;margin:0}
+  .thumbdoc{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:6px}
+  .thumbdoc .glyph{margin:0;width:34px;height:34px}
+  .thumbdoc span{font-size:10.5px;color:var(--muted);word-break:break-all;text-align:center;line-height:1.2}
+  .thumbno{position:absolute;left:5px;bottom:5px;font-family:var(--mono);font-size:10.5px;background:rgba(16,24,40,.7);color:#fff;border-radius:4px;padding:1px 6px}
+  .thumbnew{position:absolute;left:5px;top:5px;font-size:10px;font-weight:600;background:var(--brand);color:#fff;border-radius:4px;padding:1px 6px}
+  .thumbrm{position:absolute;top:5px;right:5px;width:26px;height:26px;border-radius:50%;border:0;background:rgba(16,24,40,.72);
+    color:#fff;font-size:17px;line-height:1;cursor:pointer;display:grid;place-items:center}
+  .thumbrm:hover{background:var(--down)}
+  .thumbcount{margin:0 0 14px;font-size:13px;color:var(--muted)}
+
+  /* summary chart */
+  .chartwrap{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--sh);padding:22px 24px;margin-bottom:16px}
+  .chart{display:grid;grid-template-columns:repeat(12,1fr);gap:8px;align-items:end;height:210px;margin-top:18px}
+  .chart .col{display:flex;flex-direction:column;justify-content:flex-end;height:100%;text-align:center;gap:6px}
+  .chart .amt{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+  .chart .bar2{background:var(--brand);border-radius:4px 4px 0 0;min-height:3px;transition:height .2s}
+  .chart .bar2.zero{background:var(--line)}
+  .chart .mon{font-size:11.5px;color:var(--muted);padding-top:8px;border-top:1px solid var(--line-soft)}
+  .chart .col.peak .bar2{background:var(--brand-dark)}
+  .matrix table{font-size:12.5px}
+  .matrix th,.matrix td{padding:9px 10px;white-space:nowrap}
+  .matrix th:first-child,.matrix td:first-child{position:sticky;left:0;background:var(--surface);z-index:1;
+    border-right:1px solid var(--line);font-weight:600;color:var(--ink)}
+  .matrix thead th:first-child{background:#FCFCFD}
+  .matrix tfoot td:first-child{background:#FCFCFD}
+  .matrix td.zero{color:#C6CBD3}
+  .yearpick{display:flex;gap:8px;align-items:center}
+  .yearpick select{width:auto;min-width:110px}
+
+  .sizetag{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted)}
+  .sizetag i{width:11px;height:11px;border-radius:3px;display:inline-block;border:1px solid rgba(16,24,40,.14);flex:none}
+  input[type=color]{height:42px;padding:4px;cursor:pointer}
+  .sizerow{display:grid;grid-template-columns:1fr 62px auto;gap:10px;align-items:center;margin-bottom:10px}
+
+  .unitlink{appearance:none;background:none;border:0;padding:0;cursor:pointer;font-family:var(--head);font-weight:800;
+    font-size:20px;letter-spacing:-.02em;color:var(--ink);text-align:left}
+  .unitlink:hover{color:var(--brand);text-decoration:underline}
+  .unit[data-st="down"] .unitlink,.unit[data-st="retired"] .unitlink{color:var(--faint)}
+  .loglist{list-style:none;margin:0;padding:0}
+  .logitem{padding:15px 0;border-bottom:1px solid var(--line-soft)}
+  .logitem:last-child{border-bottom:0;padding-bottom:0}
+  .logitem .top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+  .logitem .ft{font-size:14px;color:var(--body);margin-top:9px;white-space:pre-wrap}
+  .logitem .mt{font-size:12.5px;color:var(--muted);margin-top:6px}
+
+  #toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 20px;
+    border-radius:var(--r-sm);font-size:13.5px;box-shadow:var(--sh-lg);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:90;max-width:90vw}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:900px){
+    .stats{grid-template-columns:1fr}
+    .panels{grid-template-columns:1fr}
+    .vendors{grid-template-columns:1fr}
+    .toolbar{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:560px){
+    main{padding:18px 14px 80px}
+    .topbar-in{padding:14px}
+    .readout .big{font-size:36px}
+    .grid2,.grid3,.choice{grid-template-columns:1fr}
+    .hero{padding:18px 16px}
+    .strip{grid-template-columns:repeat(auto-fill,minmax(56px,1fr))}
+    .btn,.aslabel{padding:11px 16px}
+    .job-foot .row{width:100%}
+  }
+  a.btn{text-decoration:none;display:inline-block}
+  .switch{display:inline-flex;align-items:center;gap:6px}
+  .switch svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  @media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brandmark">
+      <div class="glyph"><svg viewBox="0 0 24 24"><path d="M3 4h3l2.6 10.2a1.5 1.5 0 0 0 1.5 1.1h7.4a1.5 1.5 0 0 0 1.5-1.1L21 8H7"/><circle cx="10" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg></div>
+      <div><h1>T1000 Movexx Log</h1><p>Raise repairs, track vendors, keep receipts</p></div>
+    </div>
+    <div class="topbar-right">
+      <a class="btn ghost small switch" href="index.html" title="Back to the fleet list"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>Switch fleet</a>
+      <div class="saveflag" id="saveflag"><i></i><span>Loading</span></div>
+      <button class="btn ghost small" data-act="drive" id="drivebtn">Drive</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-in" role="tablist">
+    <button class="tab" role="tab" data-view="board" aria-selected="true">Overview</button>
+    <button class="tab" role="tab" data-view="fleet" aria-selected="false">Machines <span class="badge" id="c-fleet">0</span></button>
+    <button class="tab" role="tab" data-view="jobs" aria-selected="false">Repairs <span class="badge" id="c-jobs">0</span></button>
+    <button class="tab" role="tab" data-view="receipts" aria-selected="false">Receipts <span class="badge" id="c-receipts">0</span></button>
+    <button class="tab" role="tab" data-view="history" aria-selected="false">History <span class="badge" id="c-history">0</span></button>
+    <button class="tab" role="tab" data-view="vendors" aria-selected="false">Vendors <span class="badge" id="c-vendors">0</span></button>
+    <button class="tab" role="tab" data-view="summary" aria-selected="false">Summary</button>
+  </div>
+</nav>
+
+<main id="view"></main>
+<div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="store.js"></script>
+<script>
+const KEY = 'movexx-repair-log';
+const GST_DEFAULT = 0.09;
+const gstRate = () => (typeof state.gstRate==='number' && state.gstRate>=0) ? state.gstRate : GST_DEFAULT;
+const gstPct  = () => +(gstRate()*100).toFixed(2);
+const STATUSES   = ['Submitted','Quoted','In progress','Completed','Cancelled'];
+const PRIORITIES = ['Low','Normal','Urgent'];
+const OPEN = ['Submitted','Quoted','In progress'];
+const photoKey = jid => 'movexx-receipt-file-' + jid;
+let workPhotos = null, photosDirty = false;   // receipt pictures being edited in the open form
+
+/* Everything is stored in Google: records in the Sheet, receipt pictures in Drive (see store.js). */
+const DB = Store.open('Movexx');
+
+let state = { jobs:[], vendors:[], trolleys:[], sizes:[], drive:null, seq:{job:0,vendor:0} };
+let view = 'board', canSave = true;
+let filters = { q:'', status:'', vendor:'', trolley:'' };
+
+/* ---------- storage ---------- */
+async function loadData(){
+  canSave = true;
+  const saved = await DB.load();          // throws if Google cannot be reached, so nothing gets overwritten
+  if(saved) state = Object.assign({jobs:[],vendors:[],trolleys:[],sizes:[],drive:null,seq:{job:0,vendor:0}}, saved);
+
+  if(!state.trolleys || !state.trolleys.length) seedFleet();
+  if(!state.sizes || !state.sizes.length){
+    state.sizes = [ {name:'T1000 Movexx', color:'#067647'} ];
+  }
+  if(!state.seededModels){
+    state.seededModels = true;
+    const m = state.sizes[0];
+    state.trolleys.forEach(t=>{ if(!t.size){ t.size=m.name; t.color=m.color; } });
+  }
+  state.jobs.forEach(j=>{ if(!j.usable) j.usable='yes'; });
+  // Fill in the Drive web app address once. After that, whatever is set in the
+  // Drive window wins — including Turn off — and this never overrides it again.
+  if(!state.driveSeeded){
+    state.driveSeeded = true;
+    state.drive = { url:DRIVE_URL_DEFAULT, on:true };
+  }
+  if(!state.seededVendors){
+    state.seededVendors = true;
+    if(!state.vendors.some(v=>String(v.name||'').toUpperCase().includes('WAH CHYE'))){
+      state.vendors.push({ id:nextId('vendor','VEN'), name:'WAH CHYE ENGINEERING WORK', trade:'Engineering work',
+        contact:'', phone:'', email:'', address:'', uen:'23968100B', gstNo:'M90362230G', notes:'', active:true });
+    }
+  }
+}
+const UNIT_PREFIX = 'T1000 Movexx ';
+const DRIVE_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbzBmzxlhKMZl1zQFr4lHt80O2_p_CjgrmO63l83ReOh7twutv6y3rfJFdaI5syMGVJT/exec';
+function seedFleet(){
+  state.trolleys = [];
+  for(let i=1;i<=10;i++) state.trolleys.push({ id:UNIT_PREFIX+String(i).padStart(2,'0'), notes:'', active:true, lastService:'' });
+}
+let saveTimer=null, booted=false, retryTimer=null;
+function save(){
+  if(!booted) return;                       // never write before the real data has loaded
+  flag('Saving','warn'); clearTimeout(saveTimer); clearTimeout(retryTimer);
+  saveTimer = setTimeout(async ()=>{
+    saveTimer = null;
+    try{ await DB.save(state); canSave = true; flagIdle(); }
+    catch(err){ canSave = false; flagIdle(); storeError(err); }
+  },400);
+}
+function storeError(err){
+  const code = err && err.code;
+  if(code==='conflict'){
+    toast('Someone else saved changes at the same time. Loading the latest copy…');
+    setTimeout(()=>location.reload(),2000); return;
+  }
+  if(code==='setup' || code==='passcode'){
+    toast((err.message||'')+' Taking you to the login page…');
+    setTimeout(()=>{ location.href='index.html#setup'; },2000); return;
+  }
+  toast('Not saved yet: '+((err&&err.message)||'unknown error')+' Retrying in 15 seconds.');
+  retryTimer = setTimeout(save,15000);
+}
+function flag(text,cls){
+  const el=document.getElementById('saveflag');
+  el.className='saveflag'+(cls?' '+cls:''); el.querySelector('span').textContent=text;
+}
+function flagIdle(){
+  const db=document.getElementById('drivebtn');
+  if(db) db.textContent = driveReady() ? 'Drive: on' : 'Drive: off';
+  if(!booted) return;
+  if(saveTimer || DB.busy()){ flag('Saving','warn'); return; }
+  if(!canSave){ flag('Not saved yet','warn'); return; }
+  flag('Saved to Google');
+}
+window.addEventListener('beforeunload', e=>{
+  if(booted && (saveTimer || DB.busy())){ e.preventDefault(); e.returnValue=''; }
+});
+
+/* ---------- helpers ---------- */
+const $ = (s,r=document)=>r.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today = ()=> new Date().toISOString().slice(0,10);
+const money = n => (Number(n)||0).toLocaleString('en-SG',{minimumFractionDigits:2,maximumFractionDigits:2});
+const sgd = n => '$'+money(n);
+function fdate(d){
+  if(!d) return '—';
+  const p=String(d).split('-'); if(p.length!==3) return d;
+  const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return p[2]+' '+m[+p[1]-1]+' '+p[0];
+}
+function ftime(iso){
+  if(!iso) return '';
+  const d=new Date(iso); if(isNaN(d.getTime())) return '';
+  let h=d.getHours(); const m=String(d.getMinutes()).padStart(2,'0');
+  const ap = h>=12?'pm':'am'; h = h%12 || 12;
+  return h+':'+m+ap;
+}
+function nextId(kind,prefix){ state.seq[kind]=(state.seq[kind]||0)+1; return prefix+'-'+String(state.seq[kind]).padStart(4,'0'); }
+const vendorById = id => state.vendors.find(v=>v.id===id);
+const vendorName = id => { const v=vendorById(id); return v?v.name:''; };
+const jobTotal = j => (j.receipt && j.receipt.total) ? Number(j.receipt.total)||0 : Number(j.quote)||0;
+const openJobs = ()=> state.jobs.filter(j=>OPEN.includes(j.status));
+/* A repair covers one or more machines. Older records hold a single trolleyId. */
+const units   = j => (Array.isArray(j.trolleyIds) && j.trolleyIds.length) ? j.trolleyIds : (j.trolleyId ? [j.trolleyId] : []);
+const hasUnit = (j,id) => units(j).indexOf(id) >= 0;
+const unitNum = id => { const m=String(id).match(/(\d+)\s*$/); return m ? m[1] : String(id); };
+const sortIds = a => a.slice().sort((x,y)=>String(x).localeCompare(String(y),undefined,{numeric:true}));
+function unitLabel(j){
+  const u = sortIds(units(j));
+  if(u.length<=1) return u[0]||'—';
+  const activeN = state.trolleys.filter(t=>t.active).length;
+  if(u.length===activeN) return 'All '+u.length+' machines';
+  return u.every(x=>String(x).indexOf(UNIT_PREFIX)===0) ? UNIT_PREFIX+u.map(unitNum).join(', ') : u.join(', ');
+}
+const unitShort = j => { const u=units(j); return u.length>1 ? u.length+' units' : unitNum(u[0]||''); };
+const downSet  = ()=> new Set([].concat(...openJobs().filter(j=>j.usable==='no').map(units)));
+function unitStatus(t, down){
+  if(!t.active) return 'retired';
+  if((down||downSet()).has(t.id)) return 'down';
+  return openJobs().some(j=>hasUnit(j,t.id)) ? 'repair' : 'ok';
+}
+const ST_LABEL = { ok:'Ready to use', repair:'Under repair, still usable', down:'Not usable', retired:'Retired' };
+
+/* ---- servicing certificate: due one year after the last service ---- */
+function serviceDue(t){
+  if(!t || !t.lastService) return '';
+  const d = new Date(t.lastService+'T00:00:00');
+  if(isNaN(d.getTime())) return '';
+  d.setFullYear(d.getFullYear()+1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  const a = new Date(today()+'T00:00:00'), b = new Date(dateStr+'T00:00:00');
+  if(isNaN(b.getTime())) return null;
+  return Math.round((b-a)/86400000);
+}
+// thresholds the user asked for: 3 months, 1 month, 2 weeks, and the due date itself
+function serviceState(t){
+  const due = serviceDue(t);
+  if(!due) return { level:'none', due:'', days:null, label:'No service date recorded' };
+  const d = daysUntil(due);
+  let level, label;
+  if(d < 0)        { level='overdue'; label='Overdue by '+Math.abs(d)+' day'+(Math.abs(d)===1?'':'s'); }
+  else if(d === 0) { level='due';     label='Due today'; }
+  else if(d <= 14) { level='w2';      label='Due in '+d+' day'+(d===1?'':'s'); }
+  else if(d <= 30) { level='m1';      label='Due in '+d+' days'; }
+  else if(d <= 90) { level='m3';      label='Due in '+Math.round(d/30)+' months'; }
+  else             { level='ok';      label='Due in '+Math.round(d/30)+' months'; }
+  return { level, due, days:d, label };
+}
+const SERVICE_PILL = { overdue:'down', due:'down', w2:'down', m1:'warn', m3:'info', ok:'ok', none:'' };
+function servicePill(t){
+  const s = serviceState(t);
+  if(s.level==='none') return '<span class="pill">No service date</span>';
+  const cls = SERVICE_PILL[s.level];
+  return '<span class="pill '+cls+'" title="Certificate due '+esc(fdate(s.due))+'"><i></i>'+esc(s.label)+'</span>';
+}
+const serviceAlerts = () => state.trolleys
+  .filter(t=>t.active && ['overdue','due','w2','m1','m3'].indexOf(serviceState(t).level)>=0)
+  .sort((a,b)=>String(serviceDue(a)).localeCompare(String(serviceDue(b))));
+function sizeGroups(list){
+  const known = state.sizes.map(s=>s.name);
+  const groups = state.sizes.slice()
+    .sort((a,b)=>String(b.color||'').toLowerCase().localeCompare(String(a.color||'').toLowerCase()))
+    .map(s=>({ label:s.name, color:s.color, items:list.filter(t=>t.size===s.name) }))
+    .filter(g=>g.items.length);
+  const spare = list.filter(t=>!t.size || known.indexOf(t.size)<0);
+  if(spare.length) groups.push({ label:'No model set', color:'#D0D5DD', items:spare });
+  return groups;
+}
+function groupHead(g,first){
+  const tint = /^#[0-9a-fA-F]{6}$/.test(g.color||'') ? g.color : '#98A2B3';
+  return '<div class="grouphead"'+(first?' style="margin-top:18px"':'')+'>' +
+    '<span class="sizebadge" style="border-color:'+esc(tint)+'80;background:'+esc(tint)+'14;margin-left:0">' +
+      '<i style="background:'+esc(tint)+'"></i>'+esc(g.label)+'</span>' +
+    '<span class="hint">'+g.items.length+' machine'+(g.items.length===1?'':'s')+'</span></div>';
+}
+function sizeColor(name){ const s=state.sizes.find(x=>x.name===name); return s?s.color:''; }
+function trolleyColor(t){ return (t && (t.color || sizeColor(t.size))) || ''; }
+const trolleyById = id => state.trolleys.find(t=>t.id===id);
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3400); }
+function opt(list,sel){ return list.map(v=>'<option value="'+esc(v)+'"'+(v===sel?' selected':'')+'>'+esc(v)+'</option>').join(''); }
+const ICON = {
+  trolley:'<rect x="4" y="7" width="11" height="9" rx="2"/><path d="M15 11h3l2 3v2h-5"/><circle cx="8" cy="19" r="2"/><circle cx="17" cy="19" r="2"/>',
+  camera:'<path d="M4 8h3l1.6-2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.4"/>',
+  doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>'
+};
+const glyph = n => '<div class="glyph"><svg viewBox="0 0 24 24">'+ICON[n]+'</svg></div>';
+
+/* ============================================================ render */
+function render(){
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',String(t.dataset.view===view)));
+  $('#c-jobs').textContent     = openJobs().length;
+  $('#c-history').textContent  = state.jobs.filter(j=>!OPEN.includes(j.status)).length;
+  $('#c-fleet').textContent    = state.trolleys.filter(t=>t.active).length;
+  $('#c-vendors').textContent  = state.vendors.filter(v=>v.active).length;
+  $('#c-receipts').textContent = state.jobs.filter(j=>j.receipt).length;
+  $('#view').innerHTML = view==='board' ? boardView()
+    : view==='jobs' ? jobsView()
+    : view==='history' ? historyView()
+    : view==='summary' ? summaryView()
+    : view==='fleet' ? fleetView()
+    : view==='vendors' ? vendorsView()
+    : receiptsView();
+  flagIdle();
+}
+
+function sizeGroups(){
+  const sorted=[...state.trolleys].sort((a,b)=>a.id.localeCompare(b.id,undefined,{numeric:true}));
+  const known=state.sizes.map(s=>s.name);
+  const groups=state.sizes
+    .map(s=>({ label:s.name, color:s.color, items:sorted.filter(t=>t.size===s.name) }))
+    .filter(g=>g.items.length)
+    .sort((a,b)=> b.items.length-a.items.length
+      || String(a.color||'').toLowerCase().localeCompare(String(b.color||'').toLowerCase()));
+  const spare=sorted.filter(t=>!t.size || known.indexOf(t.size)<0);
+  if(spare.length) groups.push({ label:'No model set', color:'#D0D5DD', items:spare });
+  return groups;
+}
+function sizeBadge(label,color,flush){
+  const tint = /^#[0-9a-fA-F]{6}$/.test(color||'') ? color : '#98A2B3';
+  return '<span class="sizebadge" style="border-color:'+esc(tint)+'80;background:'+esc(tint)+'14'+(flush?';margin-left:0':'')+'">' +
+    '<i style="background:'+esc(tint)+'"></i>'+esc(label)+'</span>';
+}
+function groupHead(g,cls){
+  return '<div class="grouphead'+(cls?' '+cls:'')+'">'+sizeBadge(g.label,g.color,true) +
+    '<span class="hint">'+g.items.length+' machine'+(g.items.length===1?'':'s')+'</span></div>';
+}
+
+/* ---------- overview ---------- */
+function boardView(){
+  const down = downSet();
+  const active = state.trolleys.filter(t=>t.active);
+  const usable = active.filter(t=>!down.has(t.id)).length;
+  const open = openJobs();
+  const urgent = open.filter(j=>j.priority==='Urgent').length;
+  const awaiting = state.jobs.filter(j=>j.status==='Completed' && !j.receipt).length;
+  const year = String(new Date().getFullYear());
+  const spend = state.jobs.filter(j=>j.receipt && String(j.receipt.date||'').startsWith(year))
+                          .reduce((s,j)=>s+(Number(j.receipt.total)||0),0);
+
+  const byVendor={};
+  state.jobs.filter(j=>j.receipt && j.vendorId).forEach(j=>{ byVendor[j.vendorId]=(byVendor[j.vendorId]||0)+(Number(j.receipt.total)||0); });
+  const ranked=Object.entries(byVendor).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const max = ranked.length?ranked[0][1]:1;
+
+  const strips = sizeGroups().map(g=>
+    groupHead(g,'sm') + '<div class="strip">' + g.items.map(t=>{
+      const st=unitStatus(t,down), col=trolleyColor(t)||'#D0D5DD';
+      const s=serviceState(t), cert=t.active?s.level:'none';
+      return '<button class="chip" data-st="'+st+'" data-cert="'+esc(cert)+'" data-act="trolley-log" data-id="'+esc(t.id)+'"' +
+        ' style="border-bottom:3px solid '+esc(col)+'"' +
+        ' title="'+esc(t.id+' — '+ST_LABEL[st]+(s.due?' — certificate '+s.label.toLowerCase():''))+'">'+esc(t.id)+'</button>';
+    }).join('') + '</div>').join('');
+
+  const hero =
+  '<section class="hero"><div class="hero-top">' +
+    '<div class="readout"><div class="big">'+usable+' <span>/ '+active.length+'</span></div>' +
+    '<div class="cap">machines ready to use'+(down.size?' &middot; '+down.size+' out of service':'')+'</div></div>' +
+    '<div class="legend">' +
+      '<div><i style="background:var(--ok-bg);border:1px solid var(--ok-line)"></i>Ready</div>' +
+      '<div><i style="background:var(--warn-bg);border:1px solid var(--warn-line)"></i>Under repair, usable</div>' +
+      '<div><i style="background:#F2F4F7;border:1px solid var(--line)"></i>Not usable</div>' +
+      '<div><i style="border:1px dashed var(--line)"></i>Retired</div>' +
+      '<div><i style="background:var(--warn-bg);border:1px solid var(--warn-line)"></i>Cert due &le;3 mths</div>' +
+      '<div><i style="background:var(--down-bg);border:1px solid var(--down-line)"></i>Cert due &le;2 wks</div>' +
+    '</div></div>' + strips +
+  '</section>';
+
+  const stats = '<div class="stats">' +
+    stat('Open repairs', open.length, urgent?urgent+' marked urgent':'nothing urgent', urgent>0, 'go-jobs') +
+    stat('Receipts outstanding', awaiting, awaiting?'completed but not filed':'all filed', awaiting>0, 'go-outstanding') +
+    stat('Spend in '+year, sgd(spend), state.jobs.filter(j=>j.receipt).length+' receipts on file', false, 'go-summary') +
+  '</div>';
+
+  const recent = [...state.jobs].sort((a,b)=>String(b.updated||'').localeCompare(String(a.updated||''))).slice(0,6);
+  const panels = '<div class="panels">' +
+    '<section class="panel"><h3>Recent activity</h3><div class="pbody">' +
+      (recent.length
+        ? '<ul class="feed">'+recent.map(j=>'<li><b>'+esc(unitLabel(j))+'</b><span>'+esc(String(j.fault||'').split('\n')[0]).slice(0,64) +
+            '<br><span class="jobref">'+esc(j.status)+(j.vendorId?' &middot; '+esc(vendorName(j.vendorId)):' &middot; no vendor yet')+'</span></span></li>').join('')+'</ul>'
+        : '<p class="hint">Nothing logged yet. Use the button below to raise the first one.</p>') +
+    '</div></section>' +
+    '<section class="panel"><h3>Spend by vendor</h3><div class="pbody">' +
+      (ranked.length
+        ? ranked.map(([id,amt])=>'<div class="bar-row"><div class="lbl"><span>'+esc(vendorName(id)||'Unknown')+'</span><span class="money">'+sgd(amt)+'</span></div>' +
+            '<div class="bar"><i style="width:'+Math.max(4,(amt/max)*100)+'%"></i></div></div>').join('')
+        : '<p class="hint">Once you file receipts, spend per vendor shows up here.</p>') +
+    '</div></section></div>';
+
+  const alerts = serviceAlerts();
+  const hot = alerts.some(t=>['overdue','due','w2'].indexOf(serviceState(t).level)>=0);
+  const reminder = alerts.length
+    ? '<section class="alertbox'+(hot?' hot':'')+'">' +
+        '<h3>Servicing certificates &mdash; '+alerts.length+' need'+(alerts.length===1?'s':'')+' attention</h3>' +
+        '<p class="hint">Reminders run at 3 months, 1 month, 2 weeks and on the due date.</p>' +
+        '<ul>' + alerts.map(t=>{
+          const s = serviceState(t);
+          return '<li><button class="linkbtn" data-act="trolley-log" data-id="'+esc(t.id)+'">'+esc(t.id)+'</button>' +
+            '<span class="row" style="gap:10px">'+servicePill(t) +
+            '<span class="jobref">due '+esc(fdate(s.due))+'</span>' +
+            '<button class="btn ghost small" data-act="serviced" data-id="'+esc(t.id)+'">Serviced</button></span></li>';
+        }).join('') + '</ul></section>'
+    : '';
+
+  return reminder + hero + stats + panels;
+}
+function stat(k,v,note,alert,act){
+  const open = act ? '<button class="stat link" data-act="'+esc(act)+'">' : '<div class="stat">';
+  const close = act ? '</button>' : '</div>';
+  return open + '<div class="k">'+esc(k)+(act?'<span class="go">View &rsaquo;</span>':'')+'</div>' +
+    '<div class="v'+(String(v).includes('$')?' money':'')+'">'+esc(v)+'</div>' +
+    '<div class="note'+(alert?' alert':'')+'">'+esc(note)+'</div>' + close;
+}
+
+/* ---------- repairs ---------- */
+let hFilter = { q:'', trolley:'', noReceipt:false };
+
+function filteredJobs(){
+  return state.jobs.filter(j=>{
+    if(!OPEN.includes(j.status)) return false;
+    if(filters.status && j.status!==filters.status) return false;
+    if(filters.vendor && j.vendorId!==filters.vendor) return false;
+    if(filters.trolley && !hasUnit(j,filters.trolley)) return false;
+    if(filters.q){
+      const hay=[j.id,units(j).join(' '),j.fault,j.reportedBy,vendorName(j.vendorId)].join(' ').toLowerCase();
+      if(!hay.includes(filters.q.toLowerCase())) return false;
+    }
+    return true;
+  }).sort((a,b)=>STATUSES.indexOf(a.status)-STATUSES.indexOf(b.status) || String(b.dateReported||'').localeCompare(String(a.dateReported||'')));
+}
+
+function jobsView(){
+  const list = filteredJobs();
+  const openCount = openJobs().length;
+  const active = [filters.trolley, filters.status, filters.vendor?vendorName(filters.vendor):'', filters.q?'"'+filters.q+'"':''].filter(Boolean);
+
+  const head = '<div class="sec-head"><div><h2>Repairs</h2>' +
+    '<p class="sub">'+list.length+' open of '+openCount +
+      (active.length?' &middot; filtered by '+esc(active.join(', '))+' <button class="btn ghost small" data-act="clear-filters" style="margin-left:6px">Show all</button>':'') +
+      ' &middot; closed repairs are under <b>History</b>' +
+    '</p></div>' +
+    '<div class="row"><button class="btn ghost small" data-act="pdf-list">Save all as PDF</button>' +
+    '<button class="btn" data-act="new-job">New repair</button></div></div>';
+
+  const bar = '<div class="toolbar">' +
+    '<input id="f-q" placeholder="Search machine, fault or person" value="'+esc(filters.q)+'">' +
+    '<select id="f-trolley"><option value="">All machines</option>' +
+      state.trolleys.map(t=>'<option value="'+esc(t.id)+'"'+(t.id===filters.trolley?' selected':'')+'>'+esc(t.id)+'</option>').join('')+'</select>' +
+    '<select id="f-status"><option value="">Any status</option>'+opt(STATUSES,filters.status)+'</select>' +
+    '<select id="f-vendor"><option value="">Any vendor</option>' +
+      state.vendors.map(v=>'<option value="'+esc(v.id)+'"'+(v.id===filters.vendor?' selected':'')+'>'+esc(v.name)+'</option>').join('')+'</select></div>';
+
+  if(!state.jobs.length){
+    return head + '<div class="empty">'+glyph('trolley')+'<h3>No repairs logged</h3>' +
+      '<p>Pick the machine, say what is wrong, and mark whether it can still be used. That is the whole form.</p>' +
+      '<button class="btn" data-act="new-job">Log the first repair</button></div>';
+  }
+  if(!list.length){
+    return head + bar + '<div class="empty">'+glyph('doc')+'<h3>'+(active.length?'Nothing matches':'No open repairs')+'</h3>' +
+      '<p>'+(active.length?'No open repairs fit the filters you have set.':'Everything has been closed off. Past repairs are on the History tab.')+'</p>' +
+      '<button class="btn ghost" data-act="'+(active.length?'clear-filters':'go-history')+'">'+(active.length?'Clear filters':'View history')+'</button></div>';
+  }
+  return head + bar + '<div class="jobs">'+list.map(jobCard).join('')+'</div>';
+}
+
+function jobCard(j){
+  const v = vendorById(j.vendorId), r = j.receipt;
+  const isOpen = OPEN.includes(j.status);
+  const outOfService = isOpen && j.usable==='no';
+  return '<article class="job'+(outOfService?' down':'')+'">' +
+    '<div class="job-head"><div class="job-unit">' +
+      '<div class="plate'+(units(j).length>1?' multi':'')+'"><b>'+esc(unitShort(j))+'</b><span>'+(outOfService?'out':'in use')+'</span></div>' +
+      '<div style="min-width:0"><h4>'+(v?esc(v.name):'Vendor not assigned')+'</h4>' +
+        '<div class="unitlist">'+sortIds(units(j)).map(u=>'<button class="unitchip" data-act="trolley-log" data-id="'+esc(u)+'" title="'+esc(u)+'">'+esc(units(j).length>1?unitNum(u):u)+'</button>').join('')+'</div>' +
+        '<div class="meta">Reported '+fdate(j.dateReported)+(j.reportedBy?' by '+esc(j.reportedBy):'') +
+          (j.dateCompleted?' &middot; returned '+fdate(j.dateCompleted):'')+'</div>' +
+        '<div class="row" style="margin-top:9px;gap:7px">' +
+          '<span class="pill" data-s="'+esc(j.status)+'"><i></i>'+esc(j.status)+'</span>' +
+          (isOpen ? (outOfService ? '<span class="pill down">Not usable</span>' : '<span class="pill ok">Still usable</span>') : '') +
+          (j.priority==='Urgent'?'<span class="pill urgent">Urgent</span>':'') +
+        '</div></div></div>' +
+      '<div class="amount"><div class="k">'+(r?'Invoiced':'Repair order')+'</div><div class="v">'+(jobTotal(j)?sgd(jobTotal(j)):'—')+'</div></div>' +
+    '</div>' +
+    (j.fault?'<p class="job-fault">'+esc(j.fault)+'</p>':'') +
+    '<div class="job-foot"><div class="row">' +
+      (r ? '<span class="rcpt">Receipt '+esc(r.invoiceNo)+' &middot; '+sgd(r.total)+'</span>' +
+           (picCount(r)?'<button class="btn ghost small" data-act="view-file" data-id="'+esc(j.id)+'">View '+(picCount(r)>1?picCount(r)+' pictures':'picture')+'</button>':'')
+         : (j.status==='Completed'?'<span class="rcpt none">Receipt not filed</span>':'<span class="rcpt plain">'+esc(j.id)+'</span>')) +
+    '</div><div class="job-actions">' +
+      '<div class="row">' +
+        (isOpen?'<button class="btn ghost small" data-act="complete-job" data-id="'+esc(j.id)+'">Mark completed</button>':'') +
+        '<button class="btn ghost small" data-act="receipt" data-id="'+esc(j.id)+'">'+(r?'Edit receipt':'File receipt')+'</button>' +
+      '</div>' +
+      '<div class="row">' +
+        '<button class="btn ghost small" data-act="pdf-job" data-id="'+esc(j.id)+'">PDF</button>' +
+        '<button class="btn ghost small" data-act="edit-job" data-id="'+esc(j.id)+'">Edit</button>' +
+        '<button class="btn danger small" data-act="del-job" data-id="'+esc(j.id)+'">Delete</button>' +
+      '</div>' +
+    '</div></div></article>';
+}
+
+/* ---------- fleet ---------- */
+function fleetView(){
+  const down = downSet();
+  const active = state.trolleys.filter(t=>t.active);
+  const usable = active.filter(t=>!down.has(t.id)).length;
+  const bySize = state.sizes.map(s=>{
+    const n = active.filter(t=>t.size===s.name).length;
+    return n ? '<span class="sizetag"><i style="background:'+esc(s.color)+'"></i>'+n+' &times; '+esc(s.name)+'</span>' : '';
+  }).filter(Boolean).join('');
+  const unset = active.filter(t=>!t.size).length;
+
+  const head = '<div class="sec-head"><div><h2>Machines</h2>' +
+    '<p class="sub">'+usable+' of '+active.length+' ready to use &middot; '+state.trolleys.filter(t=>!t.active).length+' retired</p>' +
+    (bySize||unset?'<div class="row" style="gap:14px;margin-top:8px">'+bySize +
+      (unset?'<span class="sizetag"><i style="background:#D0D5DD"></i>'+unset+' with no size set</span>':'')+'</div>':'') +
+    '</div>' +
+    '<div class="row"><button class="btn ghost small" data-act="sizes">Manage models</button>' +
+    '<button class="btn" data-act="new-trolley">Add machine</button></div></div>';
+
+  if(!state.trolleys.length){
+    return head + '<div class="empty">'+glyph('trolley')+'<h3>No machines listed</h3>' +
+      '<p>Add them one at a time, or restore the standard 01 to 10 list.</p>' +
+      '<div class="row" style="justify-content:center"><button class="btn" data-act="new-trolley">Add machine</button>' +
+      '<button class="btn ghost" data-act="reset-fleet">Restore 01 to 10</button></div></div>';
+  }
+
+  return head + sizeGroups().map(g=>
+    groupHead(g) + '<div class="fleet">' + g.items.map(t=>unitCard(t,down)).join('') + '</div>'
+  ).join('');
+}
+
+function unitCard(t,down){
+  const st = unitStatus(t,down);
+  const col = trolleyColor(t);
+  const pill = st==='ok'?'<span class="pill ok"><i></i>Ready</span>'
+             : st==='repair'?'<span class="pill" data-s="Quoted"><i></i>Under repair</span>'
+             : st==='down'?'<span class="pill down"><i></i>Not usable</span>'
+             : '<span class="pill">Retired</span>';
+  const n = state.jobs.filter(j=>hasUnit(j,t.id)).length;
+  const tint = /^#[0-9a-fA-F]{6}$/.test(col||'') ? col : '#98A2B3';
+  const cert = t.active ? serviceState(t).level : 'none';
+  return '<div class="unit" data-st="'+st+'" data-cert="'+esc(cert)+'"'+(col?' style="border-top:4px solid '+esc(col)+'"':'')+'>' +
+    '<div class="unithead">' +
+      '<button class="unitlink" data-act="trolley-log" data-id="'+esc(t.id)+'">'+esc(t.id)+'</button>' +
+      '<span class="sizebadge" style="border-color:'+esc(tint)+'80;background:'+esc(tint)+'14">' +
+        '<i style="background:'+esc(t.size?tint:'#E4E7EC')+'"></i>'+esc(t.size||'No model')+'</span>' +
+    '</div>' +
+    '<div style="margin-top:10px">'+pill+'</div>' +
+    '<div class="certline">'+servicePill(t) +
+      (serviceDue(t)?'<span class="jobref">cert '+esc(fdate(serviceDue(t)))+'</span>':'')+'</div>' +
+    '<div class="nt">'+(t.notes?esc(t.notes):n+' repair'+(n===1?'':'s')+' on record')+'</div>' +
+    '<div class="acts"><button class="btn ghost small" data-act="edit-trolley" data-id="'+esc(t.id)+'">Edit</button>' +
+    (t.active?'<button class="btn ghost small" data-act="serviced" data-id="'+esc(t.id)+'">Serviced</button>':'')+'</div></div>';
+}
+
+function completionForm(id){
+  const j = state.jobs.find(x=>x.id===id);
+  if(!j) return;
+  let tv='';
+  if(j.completedAt){
+    const dt=new Date(j.completedAt);
+    if(!isNaN(dt.getTime())) tv = String(dt.getHours()).padStart(2,'0')+':'+String(dt.getMinutes()).padStart(2,'0');
+  }
+  openModal(
+  '<div class="modal-head"><div><h3>Completion time</h3>' +
+    '<p>'+esc(unitLabel(j))+' &middot; '+esc(j.id)+'</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><div class="grid2">' +
+    '<label class="f"><span class="lbl">Date completed</span><input type="date" id="c-date" value="'+esc(j.dateCompleted||today())+'"></label>' +
+    '<label class="f"><span class="lbl">Time</span><input type="time" id="c-time" value="'+esc(tv)+'">' +
+      '<small>Leave blank to record the date only.</small></label>' +
+  '</div><p class="hint">Use this if the machine came back earlier than when you keyed it in.</p></div>' +
+  '<div class="modal-foot"><button class="btn ghost" data-act="close">Cancel</button>' +
+  '<button class="btn" id="csave">Save</button></div>');
+
+  $('#csave').addEventListener('click',()=>{
+    const dv=$('#c-date').value, t2=$('#c-time').value;
+    if(!dv){ toast('Pick a date first.'); return; }
+    j.dateCompleted = dv;
+    if(t2){
+      const dt = new Date(dv+'T'+t2);
+      j.completedAt = isNaN(dt.getTime()) ? '' : dt.toISOString();
+    } else j.completedAt = '';
+    j.updated = new Date().toISOString();
+    save(); closeModal(); render();
+    toast(unitLabel(j)+' completion set to '+fdate(dv)+(j.completedAt?' '+ftime(j.completedAt):'')+'.');
+  });
+}
+
+/* ---------- machine repair log popup ---------- */
+function trolleyLog(id){
+  const t = trolleyById(id);
+  if(!t){ toast('That machine is no longer on the list.'); return; }
+  const jobs = state.jobs.filter(j=>hasUnit(j,id))
+    .sort((a,b)=>String(b.dateReported||'').localeCompare(String(a.dateReported||'')));
+  const spend = jobs.reduce((s,j)=>s+(j.receipt?Number(j.receipt.total)||0:0),0);
+  const st = unitStatus(t);
+  const col = trolleyColor(t);
+  const pill = st==='ok'?'<span class="pill ok"><i></i>Ready to use</span>'
+             : st==='repair'?'<span class="pill" data-s="Quoted"><i></i>Under repair, usable</span>'
+             : st==='down'?'<span class="pill down"><i></i>Not usable</span>'
+             : '<span class="pill">Retired</span>';
+
+  const list = jobs.length ? '<ul class="loglist">' + jobs.map(j=>{
+    const open = OPEN.includes(j.status);
+    return '<li class="logitem"><div class="top">' +
+      '<div class="row" style="gap:8px">' +
+        '<span class="pill" data-s="'+esc(j.status)+'"><i></i>'+esc(j.status)+'</span>' +
+        (open && j.usable==='no' ? '<span class="pill down">Not usable</span>' : '') +
+        (j.priority==='Urgent'?'<span class="pill urgent">Urgent</span>':'') +
+      '</div>' +
+      '<span class="jobref">'+esc(j.id)+' &middot; '+fdate(j.dateReported)+'</span></div>' +
+      '<div class="ft">'+esc(j.fault||'—')+'</div>' +
+      '<div class="mt">'+esc(vendorName(j.vendorId)||'No vendor assigned') +
+        (j.dateCompleted?' &middot; closed '+fdate(j.dateCompleted)+(j.completedAt?' '+esc(ftime(j.completedAt)):''):'') +
+        (j.receipt?' &middot; invoice '+esc(j.receipt.invoiceNo)+' &middot; <b style="color:var(--ink)">'+sgd(j.receipt.total)+'</b>':'') +
+      '</div>' +
+      (picCount(j.receipt)
+        ? '<div style="margin-top:8px"><button class="btn ghost small" data-act="view-file" data-id="'+esc(j.id)+'">View receipt</button></div>' : '') +
+    '</li>';
+  }).join('') + '</ul>'
+  : '<div style="text-align:center;padding:24px 0"><p class="hint">No repairs logged for this machine yet.</p></div>';
+
+  openModal(
+  '<div class="modal-head"><div>' +
+    '<h3>'+esc(t.id)+'</h3>' +
+    '<p><span class="sizebadge" style="border-color:'+esc(/^#[0-9a-fA-F]{6}$/.test(col||'')?col:'#98A2B3')+'80;background:' +
+      esc(/^#[0-9a-fA-F]{6}$/.test(col||'')?col:'#98A2B3')+'14;margin-left:0">' +
+      '<i style="background:'+esc(col||'#E4E7EC')+'"></i>'+esc(t.size||'No model')+'</span>' +
+      (t.notes?' <span class="hint">'+esc(t.notes)+'</span>':'')+'</p>' +
+  '</div><button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body">' +
+    '<div class="row" style="justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--line)">' +
+      pill +
+      '<span class="hint">'+jobs.length+' repair'+(jobs.length===1?'':'s')+
+        (spend?' &middot; '+sgd(spend)+' invoiced':'')+'</span>' +
+    '</div>' +
+    '<div class="certline" style="padding:14px 0;border-bottom:1px solid var(--line)">' +
+      servicePill(t) +
+      '<span class="hint">'+(t.lastService
+        ? 'Last serviced '+esc(fdate(t.lastService))+' &middot; certificate due '+esc(fdate(serviceDue(t)))
+        : 'No servicing date on record')+'</span>' +
+      '<button class="btn ghost small" data-act="serviced" data-id="'+esc(t.id)+'" style="margin-left:auto">Record servicing</button>' +
+    '</div>' + list +
+  '</div>' +
+  '<div class="modal-foot">' +
+    '<button class="btn ghost" data-act="edit-trolley" data-id="'+esc(t.id)+'" style="margin-right:auto">Edit machine</button>' +
+    '<button class="btn ghost" data-act="close">Close</button>' +
+    (t.active?'<button class="btn" data-act="quick-repair" data-id="'+esc(t.id)+'">Log repair</button>':'') +
+  '</div>');
+}
+
+/* ---------- size list ---------- */
+function sizesForm(){
+  let rows = state.sizes.map(s=>({ name:s.name, color:s.color, orig:s.name, origColor:s.color }));
+  openModal(
+  '<div class="modal-head"><div><h3>Machine models</h3>' +
+    '<p>Each model carries a default colour. Add as many as you need.</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><div id="sizerows"></div>' +
+  '<button type="button" class="btn ghost small" id="addsize">Add another model</button>' +
+  '<p class="hint" style="margin-top:14px">Changing a colour here updates every machine of that model that still uses the default.</p></div>' +
+  '<div class="modal-foot"><button class="btn ghost" data-act="close">Cancel</button>' +
+  '<button class="btn" id="savesizes">Save models</button></div>');
+
+  function draw(){
+    $('#sizerows').innerHTML = rows.length
+      ? rows.map((s,i)=>'<div class="sizerow">' +
+          '<input data-i="'+i+'" data-k="name" value="'+esc(s.name)+'" placeholder="e.g. 4 Layer">' +
+          '<input type="color" data-i="'+i+'" data-k="color" value="'+esc(s.color||'#667085')+'">' +
+          '<button type="button" class="btn danger small" data-rm="'+i+'">Remove</button></div>').join('')
+      : '<p class="hint" style="margin-bottom:14px">No models yet.</p>';
+  }
+  draw();
+  $('#sizerows').addEventListener('input', e=>{
+    const i=e.target.dataset.i; if(i==null) return;
+    rows[i][e.target.dataset.k] = e.target.value;
+  });
+  $('#sizerows').addEventListener('click', e=>{
+    const b=e.target.closest('[data-rm]'); if(!b) return;
+    const i=+b.dataset.rm;
+    const used = state.trolleys.filter(t=>t.size===rows[i].orig).length;
+    if(used){ toast(rows[i].name+' is used by '+used+' machine'+(used===1?'':'s')+'. Change those first.'); return; }
+    rows.splice(i,1); draw();
+  });
+  $('#addsize').addEventListener('click', ()=>{ rows.push({name:'',color:'#667085'}); draw(); });
+  $('#savesizes').addEventListener('click', ()=>{
+    const clean = rows.filter(r=>String(r.name||'').trim());
+    const names = clean.map(r=>r.name.trim().toLowerCase());
+    if(names.some((n,i)=>names.indexOf(n)!==i)){ toast('Two models have the same name.'); return; }
+    rows.forEach(r=>{
+      if(!r.orig) return;
+      state.trolleys.forEach(t=>{
+        if(t.size!==r.orig) return;
+        if(!t.color || t.color===r.origColor) t.color = r.color;
+        t.size = String(r.name||'').trim();
+      });
+    });
+    state.sizes = clean.map(r=>({ name:r.name.trim(), color:r.color }));
+    save(); closeModal(); render(); toast('Models updated.');
+  });
+}
+
+/* ---------- history ---------- */
+function historyView(){
+  const past = state.jobs.filter(j=>!OPEN.includes(j.status));
+  const rows = past.filter(j=>{
+    if(hFilter.noReceipt && j.receipt) return false;
+    if(hFilter.trolley && !hasUnit(j,hFilter.trolley)) return false;
+    if(hFilter.q){
+      const hay=[j.id,units(j).join(' '),j.fault,j.reportedBy,vendorName(j.vendorId),j.receipt?j.receipt.invoiceNo:''].join(' ').toLowerCase();
+      if(!hay.includes(hFilter.q.toLowerCase())) return false;
+    }
+    return true;
+  }).sort((a,b)=>String(b.dateCompleted||b.dateReported||'').localeCompare(String(a.dateCompleted||a.dateReported||'')));
+  const spend = rows.reduce((s,j)=>s+(j.receipt?Number(j.receipt.total)||0:0),0);
+
+  const head = '<div class="sec-head"><div><h2>History</h2>' +
+    '<p class="sub">'+rows.length+' closed repair'+(rows.length===1?'':'s')+
+      (spend?' &middot; '+sgd(spend)+' invoiced':'') +
+      (hFilter.noReceipt?' &middot; showing only those with no receipt filed <button class="btn ghost small" data-act="clear-history" style="margin-left:6px">Show all</button>':'') +
+    '</p></div></div>';
+
+  if(!past.length){
+    return head + '<div class="empty">'+glyph('doc')+'<h3>Nothing closed yet</h3>' +
+      '<p>Repairs land here once you mark them completed or file a receipt against them.</p>' +
+      '<button class="btn ghost" data-act="go-jobs">Back to repairs</button></div>';
+  }
+
+  const bar = '<div class="toolbar" style="grid-template-columns:2fr 1fr">' +
+    '<input id="h-q" placeholder="Search machine, fault or invoice no." value="'+esc(hFilter.q)+'">' +
+    '<select id="h-trolley"><option value="">All machines</option>' +
+      state.trolleys.map(t=>'<option value="'+esc(t.id)+'"'+(t.id===hFilter.trolley?' selected':'')+'>'+esc(t.id)+'</option>').join('')+'</select></div>';
+
+  if(!rows.length){
+    return head + bar + '<div class="empty">'+glyph('doc')+'<h3>Nothing matches</h3>' +
+      '<p>No closed repairs fit that search.</p><button class="btn ghost" data-act="clear-history">Clear search</button></div>';
+  }
+
+  return head + bar + '<div class="tbl-wrap"><table><thead><tr>' +
+    '<th>Trolley</th><th>Fault</th><th>Vendor</th><th>Reported</th><th>Closed</th><th>Receipt</th><th class="num">Amount</th><th></th>' +
+    '</tr></thead><tbody>' +
+    rows.map(j=>'<tr>' +
+      '<td style="color:var(--ink);font-weight:600;max-width:180px">'+esc(unitLabel(j))+'<br><span class="jobref">'+esc(j.id)+'</span></td>' +
+      '<td style="max-width:260px">'+esc(j.fault||'—')+'</td>' +
+      '<td>'+esc(vendorName(j.vendorId)||'—')+'</td>' +
+      '<td>'+fdate(j.dateReported)+'</td>' +
+      '<td><button class="linkbtn" data-act="edit-completion" data-id="'+esc(j.id)+'" title="Edit the completion date and time">' +
+        fdate(j.dateCompleted) +
+        (j.status==='Cancelled'?'<br><span class="jobref">cancelled</span>'
+          : (j.completedAt?'<br><span class="jobref">'+esc(ftime(j.completedAt))+'</span>':'')) +
+      '</button></td>' +
+      '<td>'+(j.receipt
+          ? esc(j.receipt.invoiceNo)+(j.receipt.file?' <button class="btn ghost small" data-act="view-file" data-id="'+esc(j.id)+'">View</button>':'')
+          : '<button class="btn ghost small" data-act="receipt" data-id="'+esc(j.id)+'">File receipt</button>')+'</td>' +
+      '<td class="num" style="color:var(--ink);font-weight:600">'+(j.receipt?money(j.receipt.total):'—')+'</td>' +
+      '<td><div class="row" style="gap:6px;flex-wrap:nowrap">' +
+        '<button class="btn ghost small" data-act="pdf-job" data-id="'+esc(j.id)+'">PDF</button>' +
+        '<button class="btn ghost small" data-act="reopen-job" data-id="'+esc(j.id)+'">Reopen</button>' +
+      '</div></td></tr>').join('') +
+    '</tbody><tfoot><tr><td colspan="6">'+rows.length+' repairs</td>' +
+    '<td class="num">'+money(spend)+'</td><td></td></tr></tfoot></table></div>';
+}
+
+/* ---------- summary chart ---------- */
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let sumYear = String(new Date().getFullYear());
+
+function summaryView(){
+  const years = [...new Set(state.jobs.filter(j=>j.receipt && j.receipt.date).map(j=>String(j.receipt.date).slice(0,4)))];
+  const thisYear = String(new Date().getFullYear());
+  if(!years.includes(thisYear)) years.push(thisYear);
+  years.sort().reverse();
+  if(!years.includes(sumYear)) sumYear = years[0];
+
+  const paid = state.jobs.filter(j=>j.receipt && String(j.receipt.date||'').slice(0,4)===sumYear);
+  const grid = {}, counts = {};
+  paid.forEach(j=>{
+    const m = parseInt(String(j.receipt.date).slice(5,7),10) - 1;
+    if(m<0 || m>11) return;
+    const us = units(j), share = (Number(j.receipt.total)||0) / (us.length||1);
+    us.forEach(u=>{
+      if(!grid[u]){ grid[u]=new Array(12).fill(0); counts[u]=0; }
+      grid[u][m] += share; counts[u] += 1;
+    });
+  });
+  const ids = Object.keys(grid).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const monthTotal = new Array(12).fill(0);
+  ids.forEach(id=>grid[id].forEach((v,i)=>monthTotal[i]+=v));
+  const grand = monthTotal.reduce((a,b)=>a+b,0);
+  const peak = Math.max(...monthTotal);
+  const rowTotal = id => grid[id].reduce((a,b)=>a+b,0);
+  const dearest = ids.slice().sort((a,b)=>rowTotal(b)-rowTotal(a))[0];
+
+  const picker = '<div class="row"><button class="btn ghost small" data-act="pdf-summary">Save as PDF</button>' +
+    '<div class="yearpick"><select id="s-year">' +
+    years.map(y=>'<option value="'+esc(y)+'"'+(y===sumYear?' selected':'')+'>'+esc(y)+'</option>').join('') + '</select></div></div>';
+
+  const head = '<div class="sec-head"><div><h2>Summary</h2>' +
+    '<p class="sub">Repair cost by machine and month, based on receipts filed</p></div>'+picker+'</div>';
+
+  if(!paid.length){
+    return head + '<div class="empty">'+glyph('doc')+'<h3>No costs recorded for '+esc(sumYear)+'</h3>' +
+      '<p>The chart fills in as you file receipts. Only repairs with a receipt count towards the totals.</p>' +
+      '<button class="btn ghost" data-act="go-receipts">Go to receipts</button></div>';
+  }
+
+  const stats = '<div class="stats">' +
+    stat('Total spend '+sumYear, sgd(grand), paid.length+' repair'+(paid.length===1?'':'s')+' invoiced', false) +
+    stat('Machines repaired', ids.length, 'of '+state.trolleys.length+' in the fleet', false) +
+    stat('Costliest machine', dearest||'—', dearest?sgd(rowTotal(dearest))+' across '+counts[dearest]+' repair'+(counts[dearest]===1?'':'s'):'', false) +
+  '</div>';
+
+  const chart = '<section class="chartwrap"><h3 style="font-size:15px;font-weight:700">Monthly spend '+esc(sumYear)+'</h3>' +
+    '<div class="chart">' + monthTotal.map((v,i)=>
+      '<div class="col'+(v===peak && v>0?' peak':'')+'">' +
+        '<div class="amt">'+(v?money(v):'')+'</div>' +
+        '<div class="bar2'+(v?'':' zero')+'" style="height:'+(peak? Math.max(v/peak*100,v?2:0.6) : 0.6)+'%"></div>' +
+        '<div class="mon">'+MONTHS[i]+'</div>' +
+      '</div>').join('') + '</div></section>';
+
+  const table = '<div class="tbl-wrap matrix"><table><thead><tr><th>Trolley</th>' +
+    MONTHS.map(m=>'<th class="num">'+m+'</th>').join('') + '<th class="num">Total</th></tr></thead><tbody>' +
+    ids.map(id=>'<tr><td>'+esc(id)+'</td>' +
+      grid[id].map(v=>'<td class="num'+(v?'':' zero')+'">'+(v?money(v):'—')+'</td>').join('') +
+      '<td class="num" style="color:var(--ink);font-weight:600">'+money(rowTotal(id))+'</td></tr>').join('') +
+    '</tbody><tfoot><tr><td>All machines</td>' +
+      monthTotal.map(v=>'<td class="num">'+(v?money(v):'—')+'</td>').join('') +
+      '<td class="num">'+money(grand)+'</td></tr></tfoot></table></div>';
+
+  return head + stats + chart + table;
+}
+
+/* ---------- vendors ---------- */
+function vendorsView(){
+  const head = '<div class="sec-head"><div><h2>Vendors</h2>' +
+    '<p class="sub">Only active vendors can be picked on a repair</p></div>' +
+    '<button class="btn" data-act="new-vendor">Add vendor</button></div>';
+  if(!state.vendors.length){
+    return head + '<div class="empty">'+glyph('doc')+'<h3>No vendors yet</h3>' +
+      '<p>Add the contractors you are approved to send machines to. A name and phone number is enough to start.</p>' +
+      '<button class="btn" data-act="new-vendor">Add your first vendor</button></div>';
+  }
+  const sorted=[...state.vendors].sort((a,b)=>(b.active?1:0)-(a.active?1:0)||a.name.localeCompare(b.name));
+  return head + '<div class="vendors">' + sorted.map(v=>{
+    const jobs=state.jobs.filter(j=>j.vendorId===v.id);
+    const spend=jobs.reduce((s,j)=>s+(j.receipt?(Number(j.receipt.total)||0):0),0);
+    return '<article class="vendor'+(v.active?'':' off')+'">' +
+      '<div class="row" style="justify-content:space-between;align-items:flex-start">' +
+        '<div><h4>'+esc(v.name)+'</h4><div class="trade">'+esc(v.trade||'General repairs')+'</div></div>' +
+        '<div class="row">'+(v.active?'':'<span class="pill">Inactive</span>') +
+        '<button class="btn ghost small" data-act="edit-vendor" data-id="'+esc(v.id)+'">Edit</button></div></div>' +
+      '<div class="vlines">'+line('Contact',[v.contact,v.phone].filter(Boolean).join(' · '))+line('Email',v.email) +
+        line('Address',v.address)+line('UEN',v.uen)+line('GST reg',v.gstNo)+line('Notes',v.notes)+'</div>' +
+      '<div class="vstats"><div>Repairs<b>'+jobs.length+'</b></div><div>Invoiced<b class="money">'+sgd(spend)+'</b></div></div></article>';
+  }).join('') + '</div>';
+}
+function line(k,v){ return v?'<div><span>'+esc(k)+'</span><div>'+esc(v)+'</div></div>':''; }
+
+/* ---------- receipts ---------- */
+function receiptsView(){
+  const rows = state.jobs.filter(j=>j.receipt).sort((a,b)=>String(b.receipt.date||'').localeCompare(String(a.receipt.date||'')));
+  const head = '<div class="sec-head"><div><h2>Receipts</h2><p class="sub">Every receipt filed against a completed repair</p></div>' +
+    '<button class="btn ghost small" data-act="pdf-receipts">Summary PDF</button></div>';
+  if(!rows.length){
+    return head + '<div class="empty">'+glyph('camera')+'<h3>No receipts filed</h3>' +
+      '<p>When a machine comes back, open its repair, key in the invoice and snap a photo of the receipt.</p>' +
+      '<button class="btn ghost" data-act="go-jobs">Go to repairs</button></div>';
+  }
+  const sum=k=>rows.reduce((s,j)=>s+(Number(j.receipt[k])||0),0);
+  return head + '<div class="tbl-wrap"><table><thead><tr><th>Invoice no.</th><th>Date</th><th>Trolley</th><th>Vendor</th><th>Copy</th>' +
+    '<th class="num">Before GST</th><th class="num">GST</th><th class="num">Total</th><th></th></tr></thead><tbody>' +
+    rows.map(j=>{const r=j.receipt;return '<tr><td style="color:var(--ink);font-weight:500">'+esc(r.invoiceNo)+'</td>' +
+      '<td>'+fdate(r.date)+'</td><td style="color:var(--ink);font-weight:500;max-width:180px">'+esc(unitLabel(j))+'</td>' +
+      '<td>'+esc(vendorName(j.vendorId)||'—')+'</td>' +
+      '<td>'+(r.file?'<button class="btn ghost small" data-act="view-file" data-id="'+esc(j.id)+'">View</button>':'<span class="jobref">none</span>')+'</td>' +
+      '<td class="num">'+money(r.net)+'</td><td class="num">'+money(r.gst)+'</td>' +
+      '<td class="num" style="color:var(--ink);font-weight:600">'+money(r.total)+'</td>' +
+      '<td><button class="btn ghost small" data-act="receipt" data-id="'+esc(j.id)+'">Open</button></td></tr>';}).join('') +
+    '</tbody><tfoot><tr><td colspan="5">'+rows.length+' receipts</td><td class="num">'+money(sum('net'))+'</td>' +
+    '<td class="num">'+money(sum('gst'))+'</td><td class="num">'+money(sum('total'))+'</td><td></td></tr></tfoot></table></div>';
+}
+
+/* ============================================================ modals */
+function openModal(html){
+  $('#modal').innerHTML=html; $('#scrim').classList.add('open'); document.body.style.overflow='hidden';
+  const f=$('#modal input, #modal select, #modal textarea'); if(f) f.focus();
+}
+function closeModal(){ $('#scrim').classList.remove('open'); $('#modal').innerHTML=''; document.body.style.overflow=''; }
+
+/* ---------- repair form ---------- */
+function jobForm(id, preTrolley){
+  const j = id ? state.jobs.find(x=>x.id===id) : null;
+  const firstVendor = (state.vendors.filter(v=>v.active)[0] || state.vendors[0] || {}).id || '';
+  const d = j || { trolleyId:preTrolley||'', fault:'', usable:'yes', priority:'Normal', reportedBy:'', dateReported:today(),
+                   vendorId:firstVendor, status:'Submitted', quote:'', dateCompleted:'' };
+  const vOpts = state.vendors.filter(v=>v.active||v.id===d.vendorId)
+    .map(v=>'<option value="'+esc(v.id)+'"'+(v.id===d.vendorId?' selected':'')+'>'+esc(v.name)+'</option>').join('');
+
+  openModal(
+  '<div class="modal-head"><div><h3>'+(j?'Edit repair':'New repair')+'</h3>' +
+    '<p>'+(j?esc(j.id):'Fill in what you know now — the rest can be updated later.')+'</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><form id="jform">' +
+    unitPicker(j ? units(j) : (preTrolley?[preTrolley]:[]), j ? j.id : '') +
+    '<label class="f"><span class="lbl">Vendor</span><select name="vendorId"><option value="">Assign later</option>'+vOpts+'</select></label>' +
+    '<label class="f"><span class="lbl">What is wrong<em>*</em></span>' +
+      '<textarea name="fault" required placeholder="e.g. Drive wheel slipping under load, unit pulls to one side.">'+esc(d.fault)+'</textarea></label>' +
+    '<span class="lbl" style="display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px">Can the Movexx still be used?</span>' +
+    '<div class="choice">' +
+      '<label class="opt"><input type="radio" name="usable" value="yes"'+(d.usable!=='no'?' checked':'')+'>' +
+        '<span><b>Yes, still usable</b><small>Stays in the ready count</small></span></label>' +
+      '<label class="opt warn"><input type="radio" name="usable" value="no"'+(d.usable==='no'?' checked':'')+'>' +
+        '<span><b>No, out of service</b><small>Greyed out until the repair closes</small></span></label>' +
+    '</div>' +
+    '<div class="grid3">' +
+      '<label class="f"><span class="lbl">Priority</span><select name="priority">'+opt(PRIORITIES,d.priority)+'</select></label>' +
+      '<label class="f"><span class="lbl">Reported by</span><input name="reportedBy" value="'+esc(d.reportedBy)+'"></label>' +
+      '<label class="f"><span class="lbl">Date reported</span><input type="date" name="dateReported" value="'+esc(d.dateReported)+'"></label>' +
+    '</div>' +
+  '</form></div>' +
+  '<div class="modal-foot"><button class="btn ghost" data-act="close">Cancel</button>' +
+  '<button class="btn" data-act="save-job" data-id="'+esc(id||'')+'" id="jsave">'+(j?'Save changes':'Log repair')+'</button></div>');
+  wirePicker(!!j);
+}
+
+/* ---------- multi-machine picker (new repairs) ---------- */
+function unitPicker(pre, editingId){
+  pre = pre || [];
+  const down = downSet();
+  const groups = sizeGroups().map(g=>({ ...g, items:g.items.filter(t=>t.active) })).filter(g=>g.items.length);
+  const many = groups.length > 1;
+  return '<div class="f"><span class="lbl">Movexx<em>*</em></span>' +
+    '<div class="pickbar">' +
+      '<button type="button" class="btn ghost small" data-pick="all">Select all</button>' +
+      '<button type="button" class="btn ghost small" data-pick="none">Clear</button>' +
+      '<span class="pickcount" id="pk-count">0 selected</span>' +
+    '</div>' +
+    groups.map(g=>
+      '<div class="pickgroup">' +
+        (many ? '<div class="pickhead">'+sizeBadge(g.label,g.color,true) +
+          '<button type="button" class="linkbtn" data-pick="group" data-size="'+esc(g.label)+'">Select all '+esc(g.label)+'</button></div>' : '') +
+        '<div class="pickgrid">' + g.items.map(t=>{
+          const busy = openJobs().some(x=>x.id!==editingId && hasUnit(x,t.id));
+          const col  = trolleyColor(t)||'#D0D5DD';
+          const num  = (String(t.id).match(/(\d+)\s*$/)||[])[1] || t.id;
+          return '<label class="pk'+(busy?' busy':'')+'" style="border-bottom-color:'+esc(col)+'"' +
+            ' title="'+esc(t.id+(busy?' — already has an open repair':''))+'">' +
+            '<input type="checkbox" name="tids" value="'+esc(t.id)+'" data-size="'+esc(t.size||'')+'"'+(pre.indexOf(t.id)>=0?' checked':'')+'>' +
+            '<span>'+esc(num)+'</span>'+(down.has(t.id)?'<i class="pkdot" title="Out of service"></i>':'')+'</label>';
+        }).join('') + '</div></div>'
+    ).join('') +
+    '<small>Tick one or more T1000 Movexx units. Several ticked are logged as one repair on a single card.</small></div>';
+}
+function wirePicker(editing){
+  const boxes = ()=>[...document.querySelectorAll('#jform input[name="tids"]')];
+  const sync  = ()=>{
+    const n = boxes().filter(b=>b.checked).length;
+    $('#pk-count').textContent = n+' selected';
+    $('#jsave').textContent = editing ? 'Save changes' : (n>1 ? 'Log repair for '+n+' Movexx' : 'Log repair');
+  };
+  $('#jform').addEventListener('change', e=>{ if(e.target.name==='tids') sync(); });
+  $('#jform').addEventListener('click', e=>{
+    const b = e.target.closest('[data-pick]'); if(!b) return;
+    const mode = b.dataset.pick;
+    if(mode==='all')  boxes().forEach(x=>x.checked=true);
+    if(mode==='none') boxes().forEach(x=>x.checked=false);
+    if(mode==='group'){
+      const inGroup = boxes().filter(x=>x.dataset.size===b.dataset.size);
+      const allOn = inGroup.every(x=>x.checked);
+      inGroup.forEach(x=>x.checked=!allOn);
+    }
+    sync();
+  });
+  sync();
+}
+function saveJob(id){
+  const f=$('#jform'); if(!f.reportValidity()) return;
+  const fd=Object.fromEntries(new FormData(f).entries());
+  if(!fd.usable) fd.usable='yes';
+  const ids = sortIds([...document.querySelectorAll('#jform input[name="tids"]:checked')].map(b=>b.value));
+  if(!ids.length){ toast('Tick at least one Movexx.'); return; }
+  delete fd.tids; delete fd.trolleyId;
+  const now = new Date().toISOString();
+  if(id){
+    Object.assign(state.jobs.find(x=>x.id===id), fd, { trolleyIds:ids, trolleyId:ids[0], updated:now });
+    save(); closeModal(); render(); toast('Repair updated.');
+  }else{
+    const job = Object.assign({ id:nextId('job','JOB'), status:'Submitted', quote:'', dateCompleted:'', receipt:null,
+      created:now, updated:now }, fd, { trolleyIds:ids, trolleyId:ids[0] });
+    state.jobs.unshift(job);
+    filters={q:'',status:'',vendor:'',trolley:''};
+    view='jobs';
+    save(); closeModal(); render(); window.scrollTo({top:0,behavior:'smooth'});
+    const out = fd.usable==='no' ? ' and taken out of service.' : ', still usable.';
+    toast(unitLabel(job)+' logged'+out);
+  }
+}
+
+/* ---------- machine form ---------- */
+function trolleyForm(id){
+  const t = id ? state.trolleys.find(x=>x.id===id) : null;
+  let suggested='';
+  if(!t){
+    const nums=state.trolleys.map(x=>{ const m=String(x.id).match(/(\d+)\s*$/); return m?parseInt(m[1],10):NaN; }).filter(n=>!isNaN(n));
+    suggested=UNIT_PREFIX+String((nums.length?Math.max(...nums):0)+1).padStart(2,'0');
+  }
+  const d = t || { id:suggested, notes:'', active:true, size:'', color:'', lastService:'' };
+  const count = t ? state.jobs.filter(j=>hasUnit(j,t.id)).length : 0;
+  const sizeOpts = state.sizes.map(s=>'<option value="'+esc(s.name)+'"'+(s.name===d.size?' selected':'')+'>'+esc(s.name)+'</option>').join('');
+  const swatch = d.color || sizeColor(d.size) || '#98A2B3';
+  openModal(
+  '<div class="modal-head"><div><h3>'+(t?'Edit '+esc(t.id):'Add machine')+'</h3>' +
+    '<p>'+(count?count+' repair'+(count===1?'':'s')+' on record':'New unit in the fleet')+'</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><form id="tform">' +
+    '<label class="f"><span class="lbl">Trolley number<em>*</em></span><input name="id" required value="'+esc(d.id)+'"></label>' +
+    '<div class="grid2">' +
+      '<label class="f"><span class="lbl">Model</span><select name="size" id="t-size"><option value="">Not set</option>'+sizeOpts+'</select>' +
+        '<small>Manage the list from the Machines tab.</small></label>' +
+      '<label class="f"><span class="lbl">Colour</span><input type="color" name="color" id="t-color" value="'+esc(swatch)+'">' +
+        '<small>Follows the size colour. Change it if this unit differs.</small></label>' +
+    '</div>' +
+    '<div class="grid2">' +
+      '<label class="f"><span class="lbl">Last servicing date</span><input type="date" name="lastService" value="'+esc(d.lastService||'')+'">' +
+        '<small>Certificate expires one year later.</small></label>' +
+      '<label class="f"><span class="lbl">Certificate due</span><input type="text" value="'+esc(serviceDue(d)?fdate(serviceDue(d)):'—')+'" readonly>' +
+        '<small>Worked out for you.</small></label>' +
+    '</div>' +
+    '<label class="f"><span class="lbl">Notes</span><input name="notes" placeholder="e.g. kept at Store B" value="'+esc(d.notes)+'"></label>' +
+    '<label class="f"><span class="lbl">Keep in the fleet?</span><select name="active">' +
+      '<option value="yes"'+(d.active?' selected':'')+'>Yes — counts towards the fleet total</option>' +
+      '<option value="no"'+(!d.active?' selected':'')+'>Retired — history kept, no new repairs</option></select></label>' +
+  '</form></div>' +
+  '<div class="modal-foot">' + (t?'<button class="btn danger" data-act="del-trolley" data-id="'+esc(t.id)+'" style="margin-right:auto">Remove</button>':'') +
+  '<button class="btn ghost" data-act="close">Cancel</button>' +
+  '<button class="btn" data-act="save-trolley" data-id="'+esc(id||'')+'">'+(t?'Save changes':'Add machine')+'</button></div>');
+
+  $('#t-size').addEventListener('change', e=>{
+    const c = sizeColor(e.target.value);
+    if(c) $('#t-color').value = c;
+  });
+}
+function saveTrolley(id){
+  const f=$('#tform'); if(!f.reportValidity()) return;
+  const fd=Object.fromEntries(new FormData(f).entries());
+  fd.active = fd.active==='yes'; fd.id = fd.id.trim();
+  if(!id && state.trolleys.some(t=>t.id.toLowerCase()===fd.id.toLowerCase())){ toast(fd.id+' is already on the list.'); return; }
+  if(id){
+    const t=state.trolleys.find(x=>x.id===id);
+    if(fd.id!==id){
+      if(state.trolleys.some(x=>x.id.toLowerCase()===fd.id.toLowerCase())){ toast(fd.id+' is already on the list.'); return; }
+      state.jobs.filter(j=>hasUnit(j,id)).forEach(j=>{ j.trolleyIds=units(j).map(x=>x===id?fd.id:x); j.trolleyId=j.trolleyIds[0]; });
+    }
+    Object.assign(t,fd); toast('Trolley updated.');
+  }else{ state.trolleys.push(fd); toast(fd.id+' added to the fleet.'); }
+  save(); closeModal(); render();
+}
+function deleteTrolley(id){
+  const used=state.jobs.filter(j=>hasUnit(j,id)).length;
+  if(used){ toast(id+' has '+used+' repair(s) on record. Set it to Retired instead.'); return; }
+  if(!confirm('Remove '+id+' from the fleet?')) return;
+  state.trolleys=state.trolleys.filter(t=>t.id!==id);
+  save(); closeModal(); render(); toast(id+' removed.');
+}
+
+/* ---------- vendor form ---------- */
+function vendorForm(id){
+  const v = id ? state.vendors.find(x=>x.id===id) : null;
+  const d = v || { name:'',trade:'',contact:'',phone:'',email:'',address:'',uen:'',gstNo:'',notes:'',active:true };
+  openModal(
+  '<div class="modal-head"><div><h3>'+(v?'Edit vendor':'Add vendor')+'</h3>' +
+    '<p>'+(v?'Changes apply to new repairs too':'They will appear in the vendor dropdown')+'</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><form id="vform">' +
+    '<div class="grid2"><label class="f"><span class="lbl">Company name<em>*</em></span><input name="name" required value="'+esc(d.name)+'"></label>' +
+    '<label class="f"><span class="lbl">Trade</span><input name="trade" placeholder="e.g. Trolley &amp; castor repair" value="'+esc(d.trade)+'"></label></div>' +
+    '<div class="grid2"><label class="f"><span class="lbl">Contact person</span><input name="contact" value="'+esc(d.contact)+'"></label>' +
+    '<label class="f"><span class="lbl">Phone</span><input name="phone" value="'+esc(d.phone)+'"></label></div>' +
+    '<div class="grid2"><label class="f"><span class="lbl">UEN no.</span><input name="uen" placeholder="e.g. 23968100B" value="'+esc(d.uen)+'"></label>' +
+    '<label class="f"><span class="lbl">GST reg. no.</span><input name="gstNo" placeholder="e.g. M90362230G" value="'+esc(d.gstNo)+'"></label></div>' +
+    '<label class="f"><span class="lbl">Email</span><input type="email" name="email" value="'+esc(d.email)+'"></label>' +
+    '<label class="f"><span class="lbl">Address</span><input name="address" value="'+esc(d.address)+'"></label>' +
+    '<label class="f"><span class="lbl">Notes</span><textarea name="notes" placeholder="Contract period, response time, rates.">'+esc(d.notes)+'</textarea></label>' +
+    '<label class="f"><span class="lbl">Status</span><select name="active">' +
+      '<option value="yes"'+(d.active?' selected':'')+'>Active — can be assigned repairs</option>' +
+      '<option value="no"'+(!d.active?' selected':'')+'>Inactive — records kept, no new repairs</option></select></label>' +
+  '</form></div>' +
+  '<div class="modal-foot">' + (v?'<button class="btn danger" data-act="del-vendor" data-id="'+esc(v.id)+'" style="margin-right:auto">Delete</button>':'') +
+  '<button class="btn ghost" data-act="close">Cancel</button>' +
+  '<button class="btn" data-act="save-vendor" data-id="'+esc(id||'')+'">'+(v?'Save changes':'Add vendor')+'</button></div>');
+}
+function saveVendor(id){
+  const f=$('#vform'); if(!f.reportValidity()) return;
+  const fd=Object.fromEntries(new FormData(f).entries());
+  fd.active = fd.active==='yes';
+  if(id){ Object.assign(state.vendors.find(x=>x.id===id),fd); toast('Vendor updated.'); }
+  else{ state.vendors.push(Object.assign({id:nextId('vendor','VEN')},fd)); toast('Vendor added.'); }
+  save(); closeModal(); render();
+}
+function deleteVendor(id){
+  const used=state.jobs.filter(j=>j.vendorId===id).length;
+  if(used){ toast('That vendor is on '+used+' repair(s). Set them to inactive instead.'); return; }
+  if(!confirm('Delete this vendor permanently?')) return;
+  state.vendors=state.vendors.filter(v=>v.id!==id);
+  save(); closeModal(); render(); toast('Vendor deleted.');
+}
+
+/* ---------- receipt file storage ---------- */
+async function loadPhotos(jid){
+  try{ return await DB.getPhotos(jid); }catch(e){ return []; }
+}
+async function savePhotos(jid,list){
+  if(!list || !list.length){ await DB.dropPhotos(jid); return; }
+  await DB.putPhotos(jid,list);            // pictures already in Drive are kept, new ones uploaded
+}
+const picCount = r => r ? ((r.files && r.files.length) || (r.file ? 1 : 0)) : 0;
+const MAX_PICS = 10;
+async function dropPhoto(jid){ try{ await DB.dropPhotos(jid); }catch(e){} }
+function readFile(file){
+  return new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=()=>rej(new Error('read failed')); fr.readAsDataURL(file); });
+}
+async function prepFile(file){
+  const raw = await readFile(file);
+  if(!file.type.startsWith('image/')) return { name:file.name, type:file.type, data:raw };
+  const img = await new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('bad image')); i.src=raw; });
+  const MAXPX=1280;
+  let w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+  if(Math.max(w,h)>MAXPX){ const s=MAXPX/Math.max(w,h); w=Math.round(w*s); h=Math.round(h*s); }
+  const c=document.createElement('canvas'); c.width=w; c.height=h;
+  c.getContext('2d').drawImage(img,0,0,w,h);
+  return { name:file.name||'receipt.jpg', type:'image/jpeg', data:c.toDataURL('image/jpeg',0.72) };
+}
+
+/* ---------- receipt form ---------- */
+function receiptForm(id){
+  const j=state.jobs.find(x=>x.id===id);
+  const r=j.receipt || {invoiceNo:'',date:today(),net:j.quote||'',gst:'',total:'',file:null};
+  const startPct = (typeof r.pct!=='undefined' && r.pct!=='')
+    ? r.pct
+    : (Number(r.net)>0 && Number(r.gst)>=0 && r.gst!=='' ? +(Number(r.gst)/Number(r.net)*100).toFixed(2) : gstPct());
+  workPhotos=null; photosDirty=false;
+  openModal(
+  '<div class="modal-head"><div><h3>Receipt for '+esc(unitLabel(j))+'</h3>' +
+    '<p>'+(vendorName(j.vendorId)||'No vendor assigned')+' &middot; '+esc(j.id)+'</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><div class="total-strip"><span>Total amount</span><b id="r-total">'+sgd(r.total||0)+'</b></div>' +
+  '<form id="rform">' +
+    '<div class="grid2"><label class="f"><span class="lbl">Invoice / receipt no.<em>*</em></span><input name="invoiceNo" required value="'+esc(r.invoiceNo)+'"></label>' +
+    '<label class="f"><span class="lbl">Invoice date</span><input type="date" name="date" value="'+esc(r.date)+'"></label></div>' +
+    '<div class="grid3">' +
+      '<label class="f"><span class="lbl">Amount before GST (S$)<em>*</em></span>' +
+        '<input type="number" step="0.01" min="0" name="net" id="r-net" required value="'+esc(r.net)+'"></label>' +
+      '<label class="f"><span class="lbl">GST %</span>' +
+        '<input type="number" step="0.01" min="0" max="100" name="pct" id="r-pct" value="'+esc(startPct)+'">' +
+        '<small>Set 0 if not GST registered.</small></label>' +
+      '<label class="f"><span class="lbl">GST (S$)</span>' +
+        '<input type="number" step="0.01" name="gst" id="r-gst" value="'+esc(r.gst)+'" readonly>' +
+        '<small>Worked out for you.</small></label>' +
+    '</div>' +
+  '</form>' +
+  '<fieldset class="fieldset"><legend>Pictures of the receipt</legend><div class="drop" id="r-drop"></div>' +
+    '<input type="file" id="r-cam" class="filepick" accept="image/*" capture="environment">' +
+    '<input type="file" id="r-up" class="filepick" accept="image/*,application/pdf" multiple></fieldset></div>' +
+  '<div class="modal-foot">' + (j.receipt?'<button class="btn danger" data-act="del-receipt" data-id="'+esc(j.id)+'" style="margin-right:auto">Remove receipt</button>':'') +
+  '<button class="btn ghost" data-act="close">Cancel</button>' +
+  '<button class="btn" data-act="save-receipt" data-id="'+esc(j.id)+'">Save receipt</button></div>');
+
+  const num = el => Number(el.value)||0;
+  const $net=$('#r-net'), $pct=$('#r-pct'), $gst=$('#r-gst');
+  const calc = ()=>{
+    const net=num($net), pct=Math.max(0,Number($pct.value)||0);
+    const gst=net*pct/100;
+    $gst.value = gst.toFixed(2);
+    $('#r-total').textContent = sgd(net+gst);
+  };
+  $net.addEventListener('input',calc);
+  $pct.addEventListener('input',calc);
+  calc();
+
+  function drawPhotos(note){
+    const el=$('#r-drop'); if(!el) return;
+    if(workPhotos===null){ el.innerHTML='<p>Checking for stored pictures…</p>'; return; }
+    const full = workPhotos.length >= MAX_PICS;
+    const buttons = full ? '' : '<div class="row">' +
+      '<label class="aslabel solid" for="r-cam">'+(workPhotos.length?'Take another':'Take photo')+'</label>' +
+      '<label class="aslabel" for="r-up">Upload pictures</label></div>';
+    if(!workPhotos.length){
+      el.innerHTML = glyph('camera') +
+        '<p>'+esc(note||'Snap each page of the receipt, or pick several photos or PDFs at once.')+'</p>' + buttons;
+      return;
+    }
+    el.innerHTML =
+      '<div class="thumbs">' + workPhotos.map((p,i)=>
+        '<div class="thumb">' +
+          (p.type && p.type.startsWith('image/')
+            ? '<img src="'+p.data+'" alt="Receipt picture '+(i+1)+'">'
+            : '<div class="thumbdoc">'+glyph('doc')+'<span>'+esc(p.name||'file')+'</span></div>') +
+          '<span class="thumbno">'+(i+1)+'</span>' +
+          (p._new?'<span class="thumbnew">new</span>':'') +
+          '<button type="button" class="thumbrm" data-rm="'+i+'" aria-label="Remove picture '+(i+1)+'">&times;</button>' +
+        '</div>').join('') + '</div>' +
+      '<p class="thumbcount">'+workPhotos.length+' picture'+(workPhotos.length===1?'':'s') +
+        (full?' — the most one receipt can hold':'')+(note?' · '+esc(note):'')+'</p>' + buttons;
+  }
+  drawPhotos();
+  loadPhotos(id).then(list=>{ if($('#r-drop') && workPhotos===null){ workPhotos=list; drawPhotos(); } });
+
+  $('#r-drop').addEventListener('click', e=>{
+    const b=e.target.closest('[data-rm]'); if(!b || !workPhotos) return;
+    workPhotos.splice(+b.dataset.rm,1); photosDirty=true;
+    drawPhotos(workPhotos.length?'Save to confirm':'All removed. Save to confirm.');
+  });
+
+  async function pick(e){
+    const files=[...(e.target.files||[])]; e.target.value='';
+    if(!files.length) return;
+    if(workPhotos===null) workPhotos=await loadPhotos(id);
+    const room = MAX_PICS - workPhotos.length;
+    const take = files.slice(0, Math.max(0,room));
+    let failed = 0;
+    for(let i=0;i<take.length;i++){
+      drawPhotos('Preparing '+(i+1)+' of '+take.length+'…');
+      try{ const p=await prepFile(take[i]); p._new=true; workPhotos.push(p); photosDirty=true; }
+      catch(err){ failed++; }
+    }
+    const skipped = files.length - take.length;
+    drawPhotos([failed?failed+' could not be read':'', skipped?skipped+' left out, limit is '+MAX_PICS:'', 'not saved yet']
+      .filter(Boolean).join(' · '));
+  }
+  $('#r-cam').addEventListener('change',pick);
+  $('#r-up').addEventListener('change',pick);
+}
+
+async function saveReceipt(id){
+  const f=$('#rform'); if(!f.reportValidity()) return;
+  const sb=document.querySelector('#modal [data-act="save-receipt"]');
+  if(sb){ if(sb.disabled) return; sb.disabled=true; sb.textContent='Saving…'; }
+  const fd=Object.fromEntries(new FormData(f).entries());
+  const pct = Math.max(0, Number(fd.pct)||0);
+  fd.net = Number(fd.net)||0;
+  fd.pct = pct;
+  fd.gst = +(fd.net*pct/100).toFixed(2);
+  fd.total = +(fd.net + fd.gst).toFixed(2);
+  state.gstRate = pct/100;                       // becomes the default for the next receipt
+  const j=state.jobs.find(x=>x.id===id);
+  const prevFiles = j.receipt ? (j.receipt.files || (j.receipt.file ? [j.receipt.file] : [])) : [];
+  fd.files = prevFiles;
+  let note='';
+  if(workPhotos!==null && photosDirty){
+    const clean = workPhotos.map(p=>({ id:p.id, name:p.name, type:p.type, data:p.data }));
+    if(workPhotos.some(p=>!p.id)) toast('Uploading pictures to Drive…');
+    try{
+      await savePhotos(id, clean);
+      fd.files = clean.map(p=>({ name:p.name, type:p.type }));
+    }catch(err){
+      note = String(err && err.name).indexOf('Quota')>-1
+        ? ' Browser storage is full, so the new pictures were not kept.'
+        : ' The pictures could not be stored — details saved without them.';
+    }
+  }
+  fd.file = fd.files[0] || null;   // older parts of the page look for a single file
+  j.receipt=fd; j.updated=new Date().toISOString();
+  if(j.status!=='Completed' && j.status!=='Cancelled'){
+    j.status='Completed';
+    if(!j.completedAt) j.completedAt = new Date().toISOString();
+    if(!j.dateCompleted) j.dateCompleted = fd.date || today();
+  }
+  save(); closeModal(); render();
+  toast('Receipt saved. '+unitLabel(j)+(units(j).length>1?' are':' is')+' back in service.'+note);
+}
+
+async function viewFile(id){
+  const j=state.jobs.find(x=>x.id===id);
+  const list=await loadPhotos(id);
+  if(!list.length){ toast('No pictures of the receipt were stored for this repair.'); return; }
+  openModal(
+    '<div class="modal-head"><div><h3>Receipt for '+esc(unitLabel(j))+'</h3>' +
+    '<p>'+esc(j.receipt?j.receipt.invoiceNo:j.id)+' &middot; '+list.length+' picture'+(list.length===1?'':'s')+'</p></div>' +
+    '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+    '<div class="modal-body viewer">' + list.map((p,i)=>
+      '<figure class="viewpic">' +
+        (p.type && p.type.startsWith('image/')
+          ? '<img src="'+p.data+'" alt="Receipt picture '+(i+1)+'">'
+          : '<p class="hint">'+esc(p.name)+' is stored as a PDF. <a href="'+p.data+'" download="'+esc(p.name)+'">Open it</a></p>') +
+        (list.length>1?'<figcaption>'+(i+1)+' of '+list.length+'</figcaption>':'') +
+      '</figure>').join('') +
+    '</div><div class="modal-foot"><button class="btn ghost" data-act="close">Close</button>' +
+    '<button class="btn" data-act="receipt" data-id="'+esc(id)+'">Edit receipt</button></div>');
+}
+
+/* ============================================================ PDF */
+function pdfDoc(landscape){
+  if(!window.jspdf){ toast('PDF library did not load. Check your connection and refresh.'); return null; }
+  return new window.jspdf.jsPDF({unit:'pt',format:'a4',orientation:landscape?'landscape':'portrait'});
+}
+const M=48, PW=595, RW=PW-M*2;
+const BRAND=[14,76,102];
+const pgW = doc => doc.internal.pageSize.getWidth();
+const pgH = doc => doc.internal.pageSize.getHeight();
+function pdfHeader(doc,docType,ref,vendor){
+  const W = pgW(doc);
+  doc.setFillColor(BRAND[0],BRAND[1],BRAND[2]); doc.rect(0,0,W,96,'F');
+  doc.setTextColor(255,255,255).setFont('helvetica','bold').setFontSize(22); doc.text('MMRC',M,38);
+  doc.setFontSize(12); doc.text('OPS SUPPORT',M,57);
+  doc.setFont('helvetica','normal').setFontSize(9.5).setTextColor(184,212,222); doc.text('T1000 Movexx fleet maintenance',M,74);
+  if(vendor){
+    doc.setFont('helvetica','bold').setFontSize(11.5).setTextColor(255,255,255);
+    doc.text(doc.splitTextToSize(String(vendor),225), W-M, 38, {align:'right'});
+  }
+  const y = 126;
+  doc.setFont('helvetica','bold').setFontSize(8.5).setTextColor(102,112,133);
+  doc.text(String(docType).toUpperCase(), M, y);
+  if(ref){ doc.setFont('helvetica','normal'); doc.text(String(ref), W-M, y, {align:'right'}); }
+  doc.setDrawColor(228,231,236).setLineWidth(.8); doc.line(M,y+9,W-M,y+9);
+  doc.setTextColor(16,24,40);
+  return y + 32;
+}
+function vendorLabelFor(rows){
+  if(filters.vendor) return vendorName(filters.vendor);
+  const ids=[...new Set(rows.map(j=>j.vendorId).filter(Boolean))];
+  if(ids.length===1 && rows.every(j=>j.vendorId)) return vendorName(ids[0]);
+  return ids.length ? 'All vendors' : '';
+}
+function pdfLabel(doc,t,x,y){ doc.setFont('helvetica','bold').setFontSize(7.5).setTextColor(102,112,133); doc.text(String(t).toUpperCase(),x,y); }
+function pdfValue(doc,t,x,y,size){ doc.setFont('helvetica','normal').setFontSize(size||11).setTextColor(16,24,40); doc.text(String(t||'—'),x,y); }
+function pdfSection(doc,t,y){
+  const W = pgW(doc);
+  doc.setFillColor(244,246,249); doc.rect(M,y-12,W-M*2,20,'F');
+  doc.setFont('helvetica','bold').setFontSize(8.5).setTextColor(16,24,40); doc.text(String(t).toUpperCase(),M+9,y+2);
+  return y+32;
+}
+function pdfFooter(doc){
+  const n=doc.internal.getNumberOfPages();
+  for(let i=1;i<=n;i++){
+    doc.setPage(i); doc.setFont('helvetica','normal').setFontSize(7.5).setTextColor(152,162,179);
+    doc.text('Generated '+fdate(today())+'   ·   page '+i+' of '+n, M, pgH(doc)-30);
+  }
+}
+// PDFs use the same Google web app as the records; only the on/off choice is kept per fleet
+const driveCfg = () => ({ url:Store.url(), on:!(state.drive && state.drive.on===false) });
+function driveReady(){ const c=driveCfg(); return !!(c.on && c.url); }
+
+function downloadPdf(doc,name){
+  try{ doc.save(name); toast('PDF saved as '+name); }
+  catch(e){
+    try{ window.open(doc.output('bloburl'),'_blank'); toast('PDF opened in a new tab — save it from there.'); }
+    catch(e2){ toast('Could not create the PDF here. Open this page in your browser and try again.'); }
+  }
+}
+
+const DRIVE_WHY = {
+  address: 'The address does not look right. It should start https://script.google.com/macros/s/ and end in /exec.',
+  dev:     'That is the /dev test address. Use the /exec address from Deploy > Manage deployments.',
+  network: 'Could not reach the Google web app. Check the internet connection.',
+  signin:  'The web app asked for a Google sign-in. In Apps Script set Who has access to Anyone, then deploy a new version.',
+  secret:  'Your web app is still running the older script that asks for a secret phrase. Paste in the new script and deploy a new version.',
+  reply:   'The web app sent back something unexpected.',
+  script:  'The script ran but reported an error.'
+};
+async function postToDrive(c,payload){
+  const url = String(c.url||'').trim();
+  if(/\/dev\/?$/.test(url)) return {ok:false, reason:'dev'};
+  if(!/^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[^/]+\/exec\/?$/.test(url)) return {ok:false, reason:'address'};
+  let res, text;
+  try{
+    res = await fetch(url,{ method:'POST',
+      // text/plain keeps this a simple request, so the browser skips the
+      // preflight that Apps Script cannot answer
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(Object.assign({ action:'pdf', user:Store.user(), pass:Store.pass() }, payload)) });
+    text = await res.text();
+  }catch(err){ return {ok:false, reason:'network'}; }
+  let out=null; try{ out=JSON.parse(text); }catch(e){}
+  if(!out){
+    if(/accounts\.google|ServiceLogin|signin/i.test(text)) return {ok:false, reason:'signin'};
+    return {ok:false, reason:'reply', detail:'HTTP '+res.status};
+  }
+  if(!out.ok) return {ok:false, reason:'script', detail:out.error};
+  return {ok:true, out};
+}
+const driveWhy = r => DRIVE_WHY[r.reason] + (r.detail && r.reason!=='secret' ? ' ('+r.detail+')' : '');
+
+/* PDF names: the day's date first, then the Movexx, e.g. "2026-09-22 T1000 Movexx 03.pdf" */
+const fileSafe = t => String(t).replace(/[\\/:*?"<>|]+/g,'-').replace(/\s+/g,' ').trim();
+function unitFileLabel(j){
+  const u = sortIds(units(j));
+  if(u.length<=1) return u[0] || 'Movexx';
+  if(u.length===state.trolleys.filter(t=>t.active).length) return 'All '+u.length+' Movexx';
+  return unitLabel(j);
+}
+const pdfName = rest => fileSafe(today()+' '+rest)+'.pdf';
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+// Repair Log folders follow the repair's reported date; Receipt folders follow the day you save.
+function driveSubfolder(kind, reported){
+  if(!kind) return '';
+  let y, m;
+  const hit = kind==='repair' && /^(\d{4})-(\d{2})-\d{2}$/.exec(String(reported||''));
+  if(hit && +hit[2]>=1 && +hit[2]<=12){ y=+hit[1]; m=+hit[2]-1; }
+  else { const d=new Date(); y=d.getFullYear(); m=d.getMonth(); }
+  return (kind==='receipt' ? 'Receipt ' : 'Repair Log ') + MONTH_NAMES[m] + ' ' + y;
+}
+
+async function pdfOut(doc,name,kind,reported){
+  if(!driveReady()){ downloadPdf(doc,name); return; }
+  const c = driveCfg();
+  toast('Sending '+name+' to Drive…');
+  const b64 = doc.output('datauristring').split(',')[1];
+  const sub = driveSubfolder(kind, reported);
+  const r = await postToDrive(c,{ subfolder:sub, name, b64 });
+  if(r.ok && sub && !r.out.version) r.out.oldScript = true;
+  if(r.ok){ toast('Saved to Drive: '+name); if(r.out.url) driveDone(r.out); return; }
+  downloadPdf(doc,name);
+  driveFailed(r, name);
+}
+
+function driveFailed(r,name){
+  openModal(
+  '<div class="modal-head"><div><h3>Could not save to Drive</h3><p>'+esc(name||'')+' was downloaded instead</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><p style="margin:0 0 12px">'+esc(driveWhy(r))+'</p>' +
+  (r.reason==='network'
+    ? '<p class="hint">Also check the Drive folder. Sometimes the file is written but the browser is blocked from reading the reply.</p>' : '') +
+  '</div><div class="modal-foot"><button class="btn ghost" data-act="close">Close</button>' +
+  '<button class="btn" data-act="drive">Open Drive settings</button></div>');
+}
+
+function driveDone(out){
+  openModal(
+  '<div class="modal-head"><div><h3>Saved to Drive</h3><p>'+esc((out.folder||'')+(out.subfolder?' / '+out.subfolder:''))+'</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body"><p class="hint" style="margin-bottom:14px">'+esc(out.name)+'</p>' +
+  (out.oldScript ? '<div class="dresult bad" style="margin-bottom:14px">Saved in the main folder, not a monthly folder. ' +
+    'Your web app is still running the old script. Paste in the new version and deploy a new version to turn on monthly folders.</div>' : '') +
+  '<p><a href="'+esc(out.url)+'" target="_blank" rel="noopener">Open it in Drive</a></p></div>' +
+  '<div class="modal-foot"><button class="btn" data-act="close">Done</button></div>');
+}
+
+function driveForm(){
+  const on = driveReady();
+  openModal(
+  '<div class="modal-head"><div><h3>Save PDFs to Google Drive</h3>' +
+    '<p>Uses the same Google connection as the rest of this log</p></div>' +
+  '<button class="x" data-act="close" aria-label="Close">&times;</button></div>' +
+  '<div class="modal-body">' +
+    '<p style="margin:0 0 14px">'+(on
+      ? 'On. PDFs go straight into the Movexx PDFs folder in Drive, sorted into monthly folders.'
+      : 'Off. PDFs download to this device instead.')+'</p>' +
+    '<div id="dresult" class="dresult"></div>' +
+    '<p class="hint">If Drive cannot be reached, the PDF downloads instead so nothing is lost.</p>' +
+  '</div>' +
+  '<div class="modal-foot">' +
+    '<button class="btn ghost" data-act="close" style="margin-right:auto">Close</button>' +
+    (on ? '<button class="btn ghost" id="dtest">Test</button>' : '') +
+    '<button class="btn" id="dtoggle">'+(on?'Turn off':'Turn on')+'</button></div>');
+
+  $('#dtoggle').addEventListener('click',()=>{
+    state.drive = { on:!on };
+    save(); closeModal(); render();
+    toast(on ? 'Drive turned off. PDFs will download to this device.' : 'PDFs will go straight to Drive.');
+  });
+  if($('#dtest')) $('#dtest').addEventListener('click', async ()=>{
+    const box = $('#dresult');
+    box.className='dresult'; box.textContent='Testing…';
+    const r = await postToDrive(driveCfg(),{name:'connection-test.pdf',
+      b64:'JVBERi0xLjQKJcOkw7zDtsOfCjEgMCBvYmoKPDwvVHlwZS9DYXRhbG9nL1BhZ2VzIDIgMCBSPj4KZW5kb2JqCjIgMCBvYmoKPDwvVHlwZS9QYWdlcy9LaWRzWzMgMCBSXS9Db3VudCAxPj4KZW5kb2JqCjMgMCBvYmoKPDwvVHlwZS9QYWdlL1BhcmVudCAyIDAgUi9NZWRpYUJveFswIDAgOTkgOTldPj4KZW5kb2JqCnhyZWYKMCA0CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNSAwMDAwMCBuIAowMDAwMDAwMDYwIDAwMDAwIG4gCjAwMDAwMDAxMTUgMDAwMDAgbiAKdHJhaWxlcgo8PC9TaXplIDQvUm9vdCAxIDAgUj4+CnN0YXJ0eHJlZgoxODQKJSVFT0YK'});
+    if(r.ok){ box.className='dresult good'; box.textContent='Working. A test file called connection-test.pdf is now in '+(r.out.folder||'your Drive')+'.'; }
+    else    { box.className='dresult bad';  box.textContent=driveWhy(r); }
+  });
+}
+
+function sheetPage(doc,j,photo){
+  const v=vendorById(j.vendorId), r=j.receipt;
+  let y=pdfHeader(doc,'REPAIR REQUEST',j.id, v?v.name:'No vendor assigned');
+  const col2 = M + RW/2;
+
+  const us = sortIds(units(j)), multi = us.length>1;
+  const models = [...new Set(us.map(u=>(trolleyById(u)||{}).size).filter(Boolean))];
+  doc.setFont('helvetica','normal').setFontSize(9.5);
+  const listLines = multi ? doc.splitTextToSize((us.every(u=>u.indexOf(UNIT_PREFIX)===0)
+      ? UNIT_PREFIX.trim()+' units '+us.map(unitNum).join(', ') : us.join(', ')), RW-190) : [];
+  const bannerH = 62 + Math.max(0, listLines.length-1)*12;
+  doc.setDrawColor(208,213,221).setLineWidth(1); doc.rect(M,y-14,RW,bannerH);
+  doc.setFont('helvetica','bold').setFontSize(multi?22:26).setTextColor(16,24,40);
+  doc.text(multi ? us.length+' machines' : (us[0]||'—'), M+16, y+22);
+  doc.setFont('helvetica','normal').setFontSize(9.5).setTextColor(102,112,133);
+  if(multi) doc.text(listLines, M+16, y+38);
+  else if(models[0]) doc.text(models[0], M+16, y+38);
+  doc.setFont('helvetica','normal').setFontSize(10).setTextColor(16,24,40);
+  doc.text('Status: '+j.status, PW-M-16, y+10, {align:'right'});
+  if(j.usable==='no'){ doc.setFont('helvetica','bold').setTextColor(180,35,24); doc.text('OUT OF SERVICE', PW-M-16, y+30, {align:'right'}); }
+  else { doc.setTextColor(6,118,71); doc.text('Still usable', PW-M-16, y+30, {align:'right'}); }
+  doc.setTextColor(16,24,40);
+  y += 80 + (bannerH-62);
+
+  y = pdfSection(doc,'Request details',y);
+  const c3 = M + RW/3, c3b = M + (RW/3)*2;
+  pdfLabel(doc,'Date reported',M,y);  pdfValue(doc,fdate(j.dateReported),M,y+15);
+  pdfLabel(doc,'Reported by',c3,y);   pdfValue(doc,j.reportedBy,c3,y+15);
+  pdfLabel(doc,'Priority',c3b,y);     pdfValue(doc,j.priority,c3b,y+15);
+  y += 46;
+  pdfLabel(doc,'Fault reported',M,y); y += 16;
+  doc.setFont('helvetica','normal').setFontSize(11);
+  const lines=doc.splitTextToSize(j.fault||'—',RW-24);
+  const boxH=Math.max(58,lines.length*15+22);
+  doc.setDrawColor(228,231,236).setLineWidth(.8); doc.roundedRect(M,y-6,RW,boxH,4,4);
+  doc.text(lines,M+12,y+14);
+  y += boxH + 26;
+
+  y = pdfSection(doc,'Assigned vendor',y);
+  if(v){
+    pdfValue(doc,v.name,M,y,13);
+    doc.setFont('helvetica','normal').setFontSize(10).setTextColor(102,112,133); doc.text(v.trade||'',M,y+15);
+    doc.setTextColor(16,24,40).setFontSize(10);
+    doc.text([v.contact,v.phone,v.email].filter(Boolean).join('   ·   ')||'—',M,y+31);
+    let vy = y+45;
+    if(v.address){ doc.text(v.address,M,vy); vy += 14; }
+    const reg=[v.uen?'UEN '+v.uen:'', v.gstNo?'GST '+v.gstNo:''].filter(Boolean).join('   ·   ');
+    if(reg){ doc.setTextColor(102,112,133).setFontSize(9.5); doc.text(reg,M,vy); vy += 14; doc.setTextColor(16,24,40); }
+    y = vy + 6;
+  }else{ pdfValue(doc,'Not assigned yet',M,y); y += 28; }
+
+  if(r){
+    y = pdfSection(doc,'Receipt on file',y);
+    pdfLabel(doc,'Invoice no.',M,y); pdfValue(doc,r.invoiceNo,M,y+15);
+    pdfLabel(doc,'Invoice date',col2,y); pdfValue(doc,fdate(r.date),col2,y+15);
+    y += 40;
+    pdfLabel(doc,'Machine returned',M,y); pdfValue(doc, fdate(j.dateCompleted)+(j.completedAt?'  '+ftime(j.completedAt):''), M,y+15);
+    const pc = picCount(r), imgN = Number(photo)||0;
+    pdfLabel(doc,'Receipt pictures',col2,y);
+    pdfValue(doc, pc ? (imgN ? (imgN===1?'1 attached overleaf':imgN+' attached overleaf') : pc+' on file') : 'Not captured', col2, y+15);
+    y += 44;
+    doc.setFillColor(BRAND[0],BRAND[1],BRAND[2]); doc.roundedRect(M,y,RW,50,4,4,'F');
+    doc.setTextColor(184,212,222).setFont('helvetica','bold').setFontSize(8);
+    doc.text('BEFORE GST',M+16,y+20); doc.text('GST',M+156,y+20); doc.text('TOTAL PAYABLE',PW-M-16,y+20,{align:'right'});
+    doc.setTextColor(255,255,255).setFontSize(13);
+    doc.text(sgd(r.net),M+16,y+38); doc.text(sgd(r.gst),M+156,y+38);
+    doc.setFontSize(17); doc.text(sgd(r.total),PW-M-16,y+38,{align:'right'});
+    y += 72; doc.setTextColor(16,24,40);
+  }
+}
+
+async function jobPDF(id){
+  const j=state.jobs.find(x=>x.id===id); const doc=pdfDoc(); if(!doc) return;
+  const r=j.receipt;
+  const pics = picCount(r) ? (await loadPhotos(id)).filter(p=>p.type && p.type.startsWith('image/')) : [];
+  sheetPage(doc,j,pics.length);
+  pics.forEach((p,i)=>{
+    doc.addPage();
+    const py=pdfHeader(doc,'RECEIPT'+(pics.length>1?' — PICTURE '+(i+1)+' OF '+pics.length:''),
+      unitLabel(j)+'  ·  '+(r.invoiceNo||''), vendorName(j.vendorId));
+    try{
+      const props=doc.getImageProperties(p.data);
+      const maxH=770-py;
+      let w=RW, h=props.height*(RW/props.width);
+      if(h>maxH){ const sc=maxH/h; h=maxH; w=w*sc; }
+      doc.addImage(p.data,'JPEG',M+(RW-w)/2,py,w,h);
+    }catch(err){ pdfValue(doc,'This picture could not be placed in the PDF.',M,py); }
+  });
+  pdfFooter(doc);
+  pdfOut(doc, pdfName(unitFileLabel(j)), j.receipt ? 'receipt' : 'repair', j.dateReported);
+}
+
+function summaryPage(doc,rows){
+  const vlabel = vendorLabelFor(rows);
+  let y=pdfHeader(doc,'OPEN REPAIRS', rows.length+(rows.length===1?' item':' items'), vlabel);
+  const cTrolley=M, cFault=M+104, cDate=M+300, cStatus=M+392, wFault=182;
+  doc.setFillColor(244,246,249); doc.rect(M,y-13,RW,20,'F');
+  pdfLabel(doc,'Machine',cTrolley,y); pdfLabel(doc,'Fault',cFault,y);
+  pdfLabel(doc,'Reported',cDate,y);   pdfLabel(doc,'Status',cStatus,y);
+  y += 24;
+  rows.forEach(j=>{
+    doc.setFont('helvetica','normal').setFontSize(9);
+    const fault=doc.splitTextToSize(String(j.fault||'—').replace(/\s*\n\s*/g,' '),wFault).slice(0,3);
+    doc.setFont('helvetica','bold').setFontSize(10);
+    const mach=doc.splitTextToSize(unitLabel(j),98).slice(0,4);
+    const h=Math.max(26, Math.max(fault.length,mach.length)*12 + 14);
+    if(y+h>780){ doc.addPage(); y=pdfHeader(doc,'OPEN REPAIRS','continued',vlabel)+2; }
+    doc.setFont('helvetica','bold').setFontSize(10).setTextColor(16,24,40); doc.text(mach,cTrolley,y);
+    doc.setFont('helvetica','normal').setFontSize(9).setTextColor(52,64,84); doc.text(fault,cFault,y);
+    doc.setFontSize(8.5); doc.text(fdate(j.dateReported),cDate,y);
+    doc.text(j.status,cStatus,y);
+    doc.setDrawColor(240,242,245).setLineWidth(.6); doc.line(M,y+h-13,PW-M,y+h-13);
+    y += h;
+  });
+}
+
+function listPDF(){
+  const doc=pdfDoc(); if(!doc) return;
+  const rows=filteredJobs();
+  if(!rows.length){ toast('No open repairs to send. Completed ones are on the History tab.'); return; }
+  summaryPage(doc,rows);
+  rows.forEach(j=>{ doc.addPage(); sheetPage(doc,j,null); });
+  pdfFooter(doc);
+  pdfOut(doc, pdfName(filters.trolley ? filters.trolley+' repairs'
+                    : 'Movexx repairs'+(filters.vendor ? ' - '+vendorName(filters.vendor) : '')), 'repair',
+        rows.map(j=>j.dateReported||'').sort().pop());
+}
+
+function summaryPDF(){
+  const doc=pdfDoc(true); if(!doc) return;
+  const W=pgW(doc), RWL=W-M*2;
+  const paid = state.jobs.filter(j=>j.receipt && String(j.receipt.date||'').slice(0,4)===sumYear);
+  if(!paid.length){ toast('No costs recorded for '+sumYear+' yet.'); return; }
+
+  const grid={}, counts={};
+  paid.forEach(j=>{
+    const m=parseInt(String(j.receipt.date).slice(5,7),10)-1;
+    if(m<0||m>11) return;
+    const us=units(j), share=(Number(j.receipt.total)||0)/(us.length||1);
+    us.forEach(u=>{ if(!grid[u]){ grid[u]=new Array(12).fill(0); counts[u]=0; } grid[u][m]+=share; counts[u]+=1; });
+  });
+  const ids=Object.keys(grid).sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+  const monthTotal=new Array(12).fill(0);
+  ids.forEach(id=>grid[id].forEach((v,i)=>monthTotal[i]+=v));
+  const grand=monthTotal.reduce((a,b)=>a+b,0);
+  const peak=Math.max(...monthTotal);
+  const rowTotal=id=>grid[id].reduce((a,b)=>a+b,0);
+  const dearest=ids.slice().sort((a,b)=>rowTotal(b)-rowTotal(a))[0];
+
+  // ---- page 1: figures + chart
+  let y=pdfHeader(doc,'ANNUAL SUMMARY', sgd(grand)+' total', sumYear);
+  const box=(label,val,note,x,w)=>{
+    doc.setDrawColor(228,231,236).setLineWidth(.8); doc.roundedRect(x,y-6,w,66,4,4);
+    doc.setFont('helvetica','bold').setFontSize(7.5).setTextColor(102,112,133); doc.text(label.toUpperCase(),x+14,y+14);
+    doc.setFont('helvetica','bold').setFontSize(17).setTextColor(16,24,40); doc.text(String(val),x+14,y+38);
+    if(note){ doc.setFont('helvetica','normal').setFontSize(8.5).setTextColor(102,112,133); doc.text(note,x+14,y+52); }
+  };
+  const bw=(RWL-24)/3;
+  box('Total spend '+sumYear, sgd(grand), paid.length+' repair'+(paid.length===1?'':'s')+' invoiced', M, bw);
+  box('Machines repaired', String(ids.length), 'of '+state.trolleys.length+' in the fleet', M+bw+12, bw);
+  box('Costliest machine', dearest||'—', dearest?sgd(rowTotal(dearest))+' across '+counts[dearest]+' repair'+(counts[dearest]===1?'':'s'):'', M+(bw+12)*2, bw);
+  y += 92;
+
+  y = pdfSection(doc,'Monthly spend',y);
+  const chartH=170, base=y+chartH, slot=RWL/12;
+  doc.setDrawColor(228,231,236).setLineWidth(.7); doc.line(M,base,W-M,base);
+  monthTotal.forEach((v,i)=>{
+    const cx=M+slot*i, bwid=slot*0.52, bx=cx+(slot-bwid)/2;
+    const h = peak ? Math.max((v/peak)*(chartH-24), v?3:0) : 0;
+    if(v){
+      doc.setFillColor(v===peak?10:14, v===peak?58:76, v===peak?78:102);
+      doc.roundedRect(bx,base-h,bwid,h,2,2,'F');
+      doc.setFont('helvetica','normal').setFontSize(7.5).setTextColor(102,112,133);
+      doc.text(money(v), cx+slot/2, base-h-6, {align:'center'});
+    }
+    doc.setFont('helvetica','normal').setFontSize(9).setTextColor(52,64,84);
+    doc.text(MONTHS[i], cx+slot/2, base+16, {align:'center'});
+  });
+
+  // ---- page 2+: matrix
+  doc.addPage();
+  let ty=pdfHeader(doc,'COST BY MACHINE', 'all figures in S$', sumYear);
+  const cW=(RWL-70)/13, x0=M+70;
+  const headRow=()=>{
+    doc.setFillColor(244,246,249); doc.rect(M,ty-13,RWL,20,'F');
+    doc.setFont('helvetica','bold').setFontSize(7.5).setTextColor(102,112,133);
+    doc.text('MACHINE',M+4,ty);
+    MONTHS.forEach((m,i)=>doc.text(m.toUpperCase(), x0+cW*(i+1)-4, ty, {align:'right'}));
+    doc.text('TOTAL', x0+cW*13-4, ty, {align:'right'});
+    ty += 22;
+  };
+  headRow();
+  ids.forEach(id=>{
+    if(ty > pgH(doc)-60){ doc.addPage(); ty=pdfHeader(doc,'COST BY MACHINE','continued',sumYear); headRow(); }
+    doc.setFont('helvetica','bold').setFontSize(9).setTextColor(16,24,40); doc.text(id,M+4,ty);
+    doc.setFont('helvetica','normal').setFontSize(8.5);
+    grid[id].forEach((v,i)=>{
+      doc.setTextColor(v?52:198, v?64:203, v?84:211);
+      doc.text(v?money(v):'—', x0+cW*(i+1)-4, ty, {align:'right'});
+    });
+    doc.setFont('helvetica','bold').setTextColor(16,24,40);
+    doc.text(money(rowTotal(id)), x0+cW*13-4, ty, {align:'right'});
+    doc.setDrawColor(240,242,245).setLineWidth(.5); doc.line(M,ty+6,W-M,ty+6);
+    ty += 20;
+  });
+  doc.setFillColor(BRAND[0],BRAND[1],BRAND[2]); doc.roundedRect(M,ty-2,RWL,26,3,3,'F');
+  doc.setFont('helvetica','bold').setFontSize(8.5).setTextColor(255,255,255); doc.text('ALL MACHINES',M+4,ty+14);
+  monthTotal.forEach((v,i)=>doc.text(v?money(v):'—', x0+cW*(i+1)-4, ty+14, {align:'right'}));
+  doc.setFontSize(9.5); doc.text(money(grand), x0+cW*13-4, ty+14, {align:'right'});
+
+  // ---- repair log for the year
+  const log = state.jobs.filter(j=>
+      String(j.dateReported||'').slice(0,4)===sumYear ||
+      String(j.dateCompleted||'').slice(0,4)===sumYear ||
+      (j.receipt && String(j.receipt.date||'').slice(0,4)===sumYear))
+    .sort((a,b)=>String(a.dateReported||'').localeCompare(String(b.dateReported||'')));
+
+  doc.addPage();
+  let ly = pdfHeader(doc,'REPAIR LOG', log.length+(log.length===1?' entry':' entries'), sumYear);
+  const L = { rep:M, tro:M+72, fault:M+170, ven:M+352, sta:M+462, clo:M+532, inv:M+600 };
+  const logHead = ()=>{
+    doc.setFillColor(244,246,249); doc.rect(M,ly-13,RWL,20,'F');
+    doc.setFont('helvetica','bold').setFontSize(7.5).setTextColor(102,112,133);
+    doc.text('REPORTED',L.rep,ly); doc.text('MACHINE',L.tro,ly); doc.text('FAULT',L.fault,ly);
+    doc.text('VENDOR',L.ven,ly);  doc.text('STATUS',L.sta,ly);  doc.text('CLOSED',L.clo,ly);
+    doc.text('INVOICE',L.inv,ly); doc.text('AMOUNT',W-M,ly,{align:'right'});
+    ly += 22;
+  };
+  logHead();
+  if(!log.length){
+    doc.setFont('helvetica','normal').setFontSize(9.5).setTextColor(102,112,133);
+    doc.text('No repairs recorded in '+sumYear+'.',M,ly+4);
+  }
+  log.forEach(j=>{
+    doc.setFont('helvetica','normal').setFontSize(8.5);
+    const fault = doc.splitTextToSize(String(j.fault||'—').replace(/\s*\n\s*/g,' '),172).slice(0,2);
+    doc.setFontSize(8);
+    const ven = doc.splitTextToSize(String(vendorName(j.vendorId)||'—'),100).slice(0,2);
+    doc.setFont('helvetica','bold').setFontSize(9);
+    const mach = doc.splitTextToSize(unitLabel(j),84).slice(0,4);
+    doc.setFont('helvetica','normal');
+    const h = Math.max(22, Math.max(fault.length,ven.length,mach.length)*11 + 12);
+    if(ly+h > pgH(doc)-50){ doc.addPage(); ly=pdfHeader(doc,'REPAIR LOG','continued',sumYear); logHead(); }
+    doc.setTextColor(52,64,84).setFontSize(8.5);
+    doc.text(fdate(j.dateReported),L.rep,ly);
+    doc.setFont('helvetica','bold').setTextColor(16,24,40).setFontSize(9); doc.text(mach,L.tro,ly);
+    doc.setFont('helvetica','normal').setTextColor(52,64,84).setFontSize(8.5);
+    doc.text(fault,L.fault,ly);
+    doc.setFontSize(8);
+    doc.text(ven, L.ven, ly);
+    doc.setFontSize(8.5);
+    doc.text(j.status,L.sta,ly);
+    doc.text(j.dateCompleted?fdate(j.dateCompleted):'—',L.clo,ly);
+    doc.text(j.receipt?String(j.receipt.invoiceNo||'—'):'—',L.inv,ly);
+    doc.setFont('helvetica','bold').setTextColor(16,24,40);
+    doc.text(j.receipt?money(j.receipt.total):'—',W-M,ly,{align:'right'});
+    doc.setDrawColor(240,242,245).setLineWidth(.5); doc.line(M,ly+h-13,W-M,ly+h-13);
+    ly += h;
+  });
+
+  pdfFooter(doc);
+  pdfOut(doc, pdfName('Movexx summary '+sumYear));
+}
+
+function receiptsPDF(){
+  const doc=pdfDoc(); if(!doc) return;
+  const rows=state.jobs.filter(j=>j.receipt).sort((a,b)=>String(b.receipt.date||'').localeCompare(String(a.receipt.date||'')));
+  if(!rows.length){ toast('No receipts to export yet.'); return; }
+  const vlabel = vendorLabelFor(rows);
+  let y=pdfHeader(doc,'RECEIPTS SUMMARY',rows.length+(rows.length===1?' receipt':' receipts'), vlabel);
+  const cols=[M,M+94,M+154,M+256];
+  doc.setFillColor(244,246,249); doc.rect(M,y-13,RW,20,'F');
+  ['Invoice no.','Date','Machine','Vendor'].forEach((h,i)=>pdfLabel(doc,h,cols[i],y));
+  pdfLabel(doc,'Total',PW-M-26,y);
+  y += 22;
+  let sum=0;
+  rows.forEach(j=>{
+    const r=j.receipt; sum += Number(r.total)||0;
+    doc.setFont('helvetica','bold').setFontSize(9.5);
+    const mach = doc.splitTextToSize(unitLabel(j),86).slice(0,4);
+    const rh = 24 + (mach.length-1)*12;
+    if(y+rh>790){ doc.addPage(); y=pdfHeader(doc,'RECEIPTS SUMMARY','continued',vlabel); }
+    doc.setFont('helvetica','normal').setFontSize(9.5).setTextColor(52,64,84);
+    doc.text(String(r.invoiceNo||'—'),cols[0],y+4);
+    doc.text(fdate(r.date),cols[1],y+4);
+    doc.setFont('helvetica','bold').setTextColor(16,24,40); doc.text(mach,cols[2],y+4);
+    doc.setFont('helvetica','normal').setTextColor(52,64,84); doc.text(doc.splitTextToSize(String(vendorName(j.vendorId)||'—'),168)[0],cols[3],y+4);
+    doc.text(sgd(r.total),PW-M,y+4,{align:'right'});
+    doc.setDrawColor(240,242,245).setLineWidth(.6); doc.line(M,y+rh-14,PW-M,y+rh-14);
+    y += rh;
+  });
+  doc.setFillColor(BRAND[0],BRAND[1],BRAND[2]); doc.roundedRect(M,y,RW,36,4,4,'F');
+  doc.setTextColor(184,212,222).setFont('helvetica','bold').setFontSize(8); doc.text('TOTAL',M+16,y+22);
+  doc.setTextColor(255,255,255).setFontSize(14); doc.text(sgd(sum),PW-M-16,y+23,{align:'right'});
+  pdfFooter(doc);
+  pdfOut(doc, pdfName('Movexx receipts'), 'receipt');
+}
+
+/* ============================================================ events */
+document.addEventListener('click', e=>{
+  const tab=e.target.closest('.tab');
+  if(tab){ view=tab.dataset.view; render(); window.scrollTo({top:0,behavior:'smooth'}); return; }
+  const btn=e.target.closest('[data-act]'); if(!btn) return;
+  const id=btn.dataset.id;
+  switch(btn.dataset.act){
+    case 'close': closeModal(); break;
+    case 'new-job': jobForm(); break;
+    case 'quick-repair': jobForm(null,id); break;
+    case 'edit-job': jobForm(id); break;
+    case 'save-job': saveJob(id); break;
+    case 'complete-job': {
+      const j = state.jobs.find(x=>x.id===id);
+      if(!confirm('Confirm '+unitLabel(j)+' '+(units(j).length>1?'have':'has')+' completed '+(units(j).length>1?'their':'its')+' repair?\n\nThe machine goes back into service and the date and time are stamped now.')) break;
+      const now = new Date();
+      j.status='Completed';
+      j.completedAt = now.toISOString();
+      j.dateCompleted = now.toISOString().slice(0,10);
+      j.updated = now.toISOString();
+      save(); render();
+      toast(unitLabel(j)+' completed at '+ftime(j.completedAt)+' on '+fdate(j.dateCompleted)+'.');
+      break;
+    }
+    case 'del-job':
+      if(confirm('Delete this repair and its receipt?')){ dropPhoto(id); state.jobs=state.jobs.filter(j=>j.id!==id); save(); render(); toast('Repair deleted.'); }
+      break;
+    case 'new-trolley': trolleyForm(); break;
+    case 'sizes': sizesForm(); break;
+    case 'trolley-log': trolleyLog(id); break;
+    case 'drive': driveForm(); break;
+    case 'serviced': {
+      const t = trolleyById(id);
+      if(!t) break;
+      const when = prompt('Servicing date for '+t.id+' (YYYY-MM-DD):', today());
+      if(when===null) break;
+      const v = String(when).trim();
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(new Date(v+'T00:00:00').getTime())){
+        toast('Enter the date as YYYY-MM-DD, e.g. '+today()+'.'); break;
+      }
+      t.lastService = v;
+      save(); render();
+      toast(t.id+' serviced '+fdate(v)+'. Certificate due '+fdate(serviceDue(t))+'.');
+      break;
+    }
+    case 'edit-completion': completionForm(id); break;
+    case 'pdf-summary': summaryPDF(); break;
+    case 'edit-trolley': trolleyForm(id); break;
+    case 'save-trolley': saveTrolley(id); break;
+    case 'del-trolley': deleteTrolley(id); break;
+    case 'reset-fleet': seedFleet(); save(); render(); toast('T1000 Movexx 01 to 10 restored.'); break;
+    case 'new-vendor': vendorForm(); break;
+    case 'edit-vendor': vendorForm(id); break;
+    case 'save-vendor': saveVendor(id); break;
+    case 'del-vendor': deleteVendor(id); break;
+    case 'receipt': receiptForm(id); break;
+    case 'save-receipt': saveReceipt(id); break;
+    case 'del-receipt':
+      if(confirm('Remove the receipt and its stored copy?')){
+        dropPhoto(id); state.jobs.find(j=>j.id===id).receipt=null; save(); closeModal(); render(); toast('Receipt removed.');
+      }
+      break;
+    case 'view-file': viewFile(id); break;
+    case 'pdf-job': jobPDF(id); break;
+    case 'pdf-list': listPDF(); break;
+    case 'pdf-receipts': receiptsPDF(); break;
+    case 'clear-filters': filters={q:'',status:'',vendor:'',trolley:''}; render(); break;
+    case 'clear-history': hFilter={q:'',trolley:'',noReceipt:false}; render(); break;
+    case 'go-outstanding':
+      hFilter={q:'',trolley:'',noReceipt:true}; view='history'; render();
+      window.scrollTo({top:0,behavior:'smooth'});
+      break;
+    case 'go-summary': view='summary'; render(); window.scrollTo({top:0,behavior:'smooth'}); break;
+    case 'go-jobs': view='jobs'; render(); break;
+    case 'go-history': view='history'; render(); break;
+    case 'go-receipts': view='receipts'; render(); break;
+    case 'reopen-job': {
+      const j = state.jobs.find(x=>x.id===id);
+      j.status='In progress'; j.dateCompleted=''; j.completedAt=''; j.updated=new Date().toISOString();
+      save(); render(); toast(unitLabel(j)+' reopened and back on the Repairs tab.');
+      break;
+    }
+    case 'filter-trolley':
+      filters={q:'',status:'',vendor:'',trolley:''};
+      if(state.jobs.some(j=>hasUnit(j,id))){ filters.trolley=id; view='jobs'; render(); }
+      else jobForm(null,id);
+      break;
+  }
+});
+document.addEventListener('input', e=>{
+  if(e.target.id==='f-q'){ filters.q=e.target.value; const p=e.target.selectionStart; render(); const n=$('#f-q'); if(n){n.focus();n.setSelectionRange(p,p);} }
+  if(e.target.id==='h-q'){ hFilter.q=e.target.value; const p=e.target.selectionStart; render(); const n=$('#h-q'); if(n){n.focus();n.setSelectionRange(p,p);} }
+});
+document.addEventListener('change', e=>{
+  if(e.target.id==='f-status'){ filters.status=e.target.value; render(); }
+  if(e.target.id==='f-vendor'){ filters.vendor=e.target.value; render(); }
+  if(e.target.id==='f-trolley'){ filters.trolley=e.target.value; render(); }
+  if(e.target.id==='h-trolley'){ hFilter.trolley=e.target.value; render(); }
+  if(e.target.id==='s-year'){ sumYear=e.target.value; render(); }
+});
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && $('#scrim').classList.contains('open')) closeModal(); });
+$('#scrim').addEventListener('mousedown', e=>{ if(e.target.id==='scrim') closeModal(); });
+
+
+/* ============================================================ start-up */
+async function boot(){
+  if(!Store.ready()){ location.href='index.html#setup'; return; }
+  flag('Loading','warn');
+  $('#view').innerHTML = '<div class="empty">'+glyph('doc')+'<h3>Loading from Google…</h3>' +
+    '<p>Fetching the latest records. This takes a few seconds.</p></div>';
+  try{ await loadData(); }
+  catch(err){ bootFailed(err); return; }
+  booted = true;
+  save(); render();
+}
+function bootFailed(err){
+  canSave = false; flag('Not connected','warn');
+  if(err && (err.code==='setup' || err.code==='passcode')){ location.href='index.html#setup'; return; }
+  document.querySelector('.tabs').style.display='none';
+  $('#view').innerHTML = '<div class="empty">'+glyph('doc')+'<h3>Could not load the records</h3>' +
+    '<p>'+esc((err && err.message) || 'Unknown error')+'</p>' +
+    '<div class="row" style="justify-content:center"><button class="btn" onclick="location.reload()">Try again</button>' +
+    '<a class="btn ghost" href="index.html#setup">Connection settings</a></div></div>';
+}
+boot();
+
+</script>
+
+</html>

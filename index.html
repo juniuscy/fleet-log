@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MMRC Fleet Log</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#101828; --body:#344054; --muted:#667085; --faint:#98A2B3;
+    --line:#E4E7EC; --line-soft:#F0F2F5; --bg:#F5F7FA; --surface:#FFFFFF;
+    --brand:#0E4C66; --brand-dark:#0A3A4E; --brand-tint:#EEF5F8;
+    --down:#B42318; --down-bg:#FEF3F2; --down-line:#FECDCA;
+    --head:'Plus Jakarta Sans','Segoe UI',system-ui,sans-serif;
+    --text:'IBM Plex Sans','Segoe UI',system-ui,sans-serif;
+    --mono:'IBM Plex Mono','SFMono-Regular',Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;min-height:100%}
+  body{background:var(--bg);color:var(--body);font-family:var(--text);font-size:15px;-webkit-font-smoothing:antialiased}
+  [hidden]{display:none !important}
+  :focus-visible{outline:3px solid var(--brand);outline-offset:3px;border-radius:6px}
+
+  .screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px}
+  .brandline{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:22px;text-align:center}
+
+  /* ---------- login ---------- */
+  .login{width:100%;max-width:380px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 8px 28px rgba(16,24,40,.08);padding:30px 26px}
+  .login .mark{width:52px;height:52px;border-radius:14px;background:var(--brand);display:grid;place-items:center;margin-bottom:18px}
+  .login .mark svg{width:28px;height:28px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .login h1{font-family:var(--head);color:var(--ink);font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0}
+  .login p.sub{margin:4px 0 0;color:var(--muted);font-size:14px}
+  label{display:block;margin-top:16px}
+  label span{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  input{font-family:var(--text);font-size:15px;color:var(--ink);background:var(--surface);border:1px solid #D0D5DD;border-radius:9px;padding:11px 12px;width:100%}
+  input:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(14,76,102,.12)}
+  details{margin-top:14px;font-size:13px}
+  summary{cursor:pointer;color:var(--muted)}
+  details label{margin-top:10px}
+  .err{margin-top:14px;font-size:13.5px;color:var(--down);background:var(--down-bg);border:1px solid var(--down-line);border-radius:8px;padding:10px 12px}
+  .btn{appearance:none;font-family:var(--text);font-weight:600;font-size:15px;border:1px solid var(--brand);background:var(--brand);color:#fff;
+       padding:12px 18px;border-radius:9px;cursor:pointer;width:100%;margin-top:20px}
+  .btn:hover{background:var(--brand-dark)}
+  .btn:disabled{opacity:.6;cursor:wait}
+
+  /* ---------- the two boxes ---------- */
+  .pick{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:760px}
+  .box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;
+       aspect-ratio:1/1;max-height:360px;width:100%;padding:28px 20px;border-radius:20px;text-decoration:none;color:var(--ink);
+       background:var(--surface);border:1px solid var(--line);box-shadow:0 1px 3px rgba(16,24,40,.06);
+       transition:transform .15s,box-shadow .15s,border-color .15s}
+  .box:hover{transform:translateY(-3px);border-color:var(--brand);box-shadow:0 14px 34px rgba(14,76,102,.14)}
+  .box .ico{width:96px;height:96px;border-radius:24px;display:grid;place-items:center;background:var(--brand-tint);border:1px solid #D3E3EA;transition:background .15s}
+  .box .ico svg{width:54px;height:54px;stroke:var(--brand);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:stroke .15s}
+  .box:hover .ico{background:var(--brand)}
+  .box:hover .ico svg{stroke:#fff}
+  .box .txt{display:flex;flex-direction:column;gap:8px}
+  .box h2{font-family:var(--head);font-weight:800;font-size:28px;letter-spacing:-.025em;margin:0;line-height:1.1}
+  .box .tag{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .who{margin-top:26px;font-size:13px;color:var(--faint);display:flex;gap:10px;align-items:center}
+  .who button{appearance:none;background:none;border:0;padding:0;font:inherit;color:var(--muted);text-decoration:underline;cursor:pointer}
+  .who button:hover{color:var(--ink)}
+
+  @media (max-width:560px){
+    .screen.home{justify-content:flex-start;padding-top:40px}
+    .pick{grid-template-columns:1fr;gap:14px}
+    .box{aspect-ratio:auto;flex-direction:row;justify-content:flex-start;text-align:left;padding:22px;gap:18px;border-radius:16px}
+    .box .ico{width:68px;height:68px;border-radius:18px;flex:none}
+    .box .ico svg{width:38px;height:38px}
+    .box h2{font-size:22px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none !important}}
+</style>
+
+<!-- Login: shown until this device has signed in -->
+<div class="screen" id="loginScreen" hidden>
+  <div class="brandline">MMRC Ops Support</div>
+  <form class="login" id="form" novalidate>
+    <div class="mark"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+    <h1>Fleet Log</h1>
+    <p class="sub">Log in to open the Trolley and T1000 Movexx logs.</p>
+    <label><span>Username</span><input id="user" autocomplete="username" autocapitalize="off" spellcheck="false"></label>
+    <label><span>Password</span><input id="pass" type="password" autocomplete="current-password"></label>
+    <details id="adv"><summary>Web app address</summary>
+      <label><span>Apps Script /exec address</span><input id="url" spellcheck="false" autocomplete="off"></label>
+    </details>
+    <div class="err" id="err" hidden></div>
+    <button type="submit" class="btn" id="go">Log in</button>
+  </form>
+</div>
+
+<!-- The two fleets -->
+<div class="screen home" id="homeScreen" hidden>
+  <div class="brandline">MMRC Ops Support</div>
+  <main class="pick" aria-label="Choose a fleet">
+    <a class="box" href="trolley.html">
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M3 4h3l2.6 10.2a1.5 1.5 0 0 0 1.5 1.1h7.4a1.5 1.5 0 0 0 1.5-1.1L21 8H7"/><circle cx="10" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/></svg></div>
+      <div class="txt"><h2>Trolley</h2><span class="tag">TR-01 &ndash; TR-23</span></div>
+    </a>
+    <a class="box" href="movexx.html">
+      <div class="ico"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="11" height="9" rx="2"/><path d="M15 11h3l2 3v2h-5"/><circle cx="8" cy="19" r="2"/><circle cx="17" cy="19" r="2"/></svg></div>
+      <div class="txt"><h2>T1000 Movexx</h2><span class="tag">Movexx 01 &ndash; 10</span></div>
+    </a>
+  </main>
+  <div class="who"><span id="whoName"></span><button type="button" id="logout">Log out</button></div>
+</div>
+
+<script src="store.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+let target = null;   // a log to return to after logging in
+
+function showHome(){
+  $('#loginScreen').hidden = true; $('#homeScreen').hidden = false;
+  $('#whoName').textContent = 'Logged in as ' + Store.user();
+}
+function showLogin(msg){
+  $('#homeScreen').hidden = true; $('#loginScreen').hidden = false;
+  $('#url').value = Store.url();
+  $('#user').value = Store.user();
+  $('#pass').value = '';
+  showErr(msg || '');
+  setTimeout(()=>($('#user').value ? $('#pass') : $('#user')).focus(), 30);
+}
+function showErr(t){ const e=$('#err'); e.textContent=t; e.hidden=!t; }
+
+$('#form').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const url = $('#url').value.trim(), user = $('#user').value.trim(), pass = $('#pass').value;
+  if(!user){ showErr('Enter the username.'); $('#user').focus(); return; }
+  if(!pass){ showErr('Enter the password.'); $('#pass').focus(); return; }
+  if(!/^https:\/\/script\.google\.com\/(a\/[^/]+\/)?macros\/s\/[^/]+\/exec\/?$/.test(url)){
+    $('#adv').open = true; showErr('The web app address should start with https://script.google.com/macros/s/ and end in /exec.'); return;
+  }
+  const go = $('#go'); go.disabled = true; go.textContent = 'Logging in…'; showErr('');
+  try{
+    await Store.ping({ url, user, pass });
+    Store.configure(url, user, pass);
+    if(target){ location.href = target; return; }
+    showHome();
+  }catch(err){
+    if(err.code==='network' || err.code==='signin' || err.code==='reply') $('#adv').open = true;
+    showErr(err.message);
+  }
+  go.disabled = false; go.textContent = 'Log in';
+});
+$('#logout').addEventListener('click', ()=>{ Store.logout(); showLogin(''); });
+
+// A log sends people back here (index.html#setup) when the login is missing or no longer accepted.
+if(location.hash==='#setup'){
+  const from = document.referrer && /(trolley|movexx)\.html/.exec(document.referrer);
+  target = from ? from[0] : null;
+  history.replaceState(null,'',location.pathname);
+  showLogin(Store.pass() ? 'Log in again to continue.' : '');
+} else if(Store.ready()) showHome();
+else showLogin('');
+</script>
+</html>
