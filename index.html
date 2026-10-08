@@ -2,6 +2,14 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0E4C66">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Fleet Log">
 <title>MMRC Fleet Log</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -61,6 +69,9 @@
   .who{margin-top:26px;font-size:13px;color:var(--faint);display:flex;gap:10px;align-items:center}
   .who button{appearance:none;background:none;border:0;padding:0;font:inherit;color:var(--muted);text-decoration:underline;cursor:pointer}
   .who button:hover{color:var(--ink)}
+  .who #install{color:var(--brand);font-weight:600}
+  .iohint{margin:14px 0 0;max-width:340px;text-align:center;font-size:13.5px;color:var(--body);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+  .iohint svg{width:15px;height:15px;stroke:var(--brand);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-2px}
 
   @media (max-width:560px){
     .screen.home{justify-content:flex-start;padding-top:40px}
@@ -103,7 +114,8 @@
       <div class="txt"><h2>T1000 Movexx</h2><span class="tag">Movexx 01 &ndash; 10</span></div>
     </a>
   </main>
-  <div class="who"><span id="whoName"></span><button type="button" id="logout">Log out</button></div>
+  <div class="who"><span id="whoName"></span><button type="button" id="install" hidden>Install app</button><button type="button" id="logout">Log out</button></div>
+  <p class="iohint" id="iosHint" hidden>On iPhone: tap the <b>Share</b> button <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3M8 7l4-4 4 4M5 11v9h14v-9"/></svg> at the bottom of Safari, then <b>Add to Home Screen</b>.</p>
 </div>
 
 <script src="store.js"></script>
@@ -146,6 +158,18 @@ $('#form').addEventListener('submit', async e=>{
   go.disabled = false; go.textContent = 'Log in';
 });
 $('#logout').addEventListener('click', ()=>{ Store.logout(); showLogin(''); });
+
+/* ---- install as an app ---- */
+const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+let installEvt = null;
+window.addEventListener('beforeinstallprompt', e=>{ e.preventDefault(); installEvt = e; if(!standalone) $('#install').hidden = false; });
+window.addEventListener('appinstalled', ()=>{ $('#install').hidden = true; installEvt = null; });
+if(isIOS && !standalone) $('#install').hidden = false;
+$('#install').addEventListener('click', async ()=>{
+  if(installEvt){ installEvt.prompt(); const r = await installEvt.userChoice; if(r.outcome==='accepted') $('#install').hidden = true; installEvt = null; return; }
+  $('#iosHint').hidden = !$('#iosHint').hidden;
+});
 
 // A log sends people back here (index.html#setup) when the login is missing or no longer accepted.
 if(location.hash==='#setup'){
